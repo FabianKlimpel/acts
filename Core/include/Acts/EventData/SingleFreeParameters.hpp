@@ -1,6 +1,6 @@
 // This file is part of the Acts project.
 //
-// Copyright (C) 2019 CERN for the benefit of the Acts project
+// Copyright (C) 2019-2020 CERN for the benefit of the Acts project
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,6 +13,7 @@
 
 #include "Acts/EventData/detail/coordinate_transformations.hpp"
 #include "Acts/Utilities/Definitions.hpp"
+#include "Acts/EventData/FreeParameterSet.hpp"
 
 namespace Acts {
 
@@ -53,9 +54,8 @@ class SingleFreeParameters {
             std::enable_if_t<std::is_same<T, ChargedPolicy>::value, int> = 0>
   SingleFreeParameters(std::optional<CovMatrix_t> cov,
                        const FreeVector& parValues)
-      : m_parameters(parValues),
-        m_oChargePolicy((0 < parValues(eFreeQOverP)) ? 1. : -1.),
-        m_covariance(std::move(cov)) {}
+      : m_oParameters(std::move(cov), parValues),
+        m_oChargePolicy(std::copysign(1., parValues[eFreeQOverP])) {}
 
   /// @brief Standard constructor for track parameters of neutral particles
   ///
@@ -66,9 +66,8 @@ class SingleFreeParameters {
             std::enable_if_t<std::is_same<T, NeutralPolicy>::value, int> = 0>
   SingleFreeParameters(std::optional<CovMatrix_t> cov,
                        const FreeVector& parValues)
-      : m_parameters(parValues),
-        m_oChargePolicy(),
-        m_covariance(std::move(cov)) {}
+      : m_oParameters(std::move(cov), parValues),
+        m_oChargePolicy() {}
 
   /// @brief Copy assignment operator
   ///
@@ -80,8 +79,7 @@ class SingleFreeParameters {
     // Check for self-assignment
     if (this != &rhs) {
       m_oChargePolicy = rhs.m_oChargePolicy;
-      m_parameters = rhs.m_parameters;
-      m_covariance = rhs.m_covariance;
+      m_oParameters = rhs.m_oParameters;
     }
     return *this;
   }
@@ -96,8 +94,7 @@ class SingleFreeParameters {
     // Check for self-assignment
     if (this != &rhs) {
       m_oChargePolicy = std::move(rhs.m_oChargePolicy);
-      m_parameters = std::move(rhs.m_parameters);
-      m_covariance = std::move(rhs.m_covariance);
+      m_oParameters = std::move(rhs.m_oParameters);
     }
     return *this;
   }
@@ -106,9 +103,8 @@ class SingleFreeParameters {
   ///
   /// @param [in] copy The object to copy from
   SingleFreeParameters(const SingleFreeParameters<ChargePolicy>& copy)
-      : m_parameters(copy.m_parameters),
-        m_oChargePolicy(copy.m_oChargePolicy),
-        m_covariance(copy.m_covariance) {}
+      : m_oParameters(copy.m_oParameters),
+        m_oChargePolicy(copy.m_oChargePolicy) {}
 
   /// @brief Default move constructor
   ///
@@ -121,7 +117,7 @@ class SingleFreeParameters {
   /// @brief Access all parameters
   ///
   /// @return Vector containing the store parameters
-  FreeVector parameters() const { return m_parameters; }
+  FreeVector parameters() const { return m_oParameters.getParameters(); }
 
   /// @brief Access to a single parameter
   ///
@@ -131,7 +127,7 @@ class SingleFreeParameters {
   template <unsigned int par,
             std::enable_if_t<par<eFreeParametersSize, int> = 0> ParValue_t get()
                 const {
-    return m_parameters(par);
+    return m_oParameters.template getParameter<par>();
   }
 
   /// @brief Access track parameter uncertainty
@@ -143,7 +139,7 @@ class SingleFreeParameters {
   template <unsigned int par,
             std::enable_if_t<par<eFreeParametersSize, int> = 0> ParValue_t
                 uncertainty() const {
-    return std::sqrt(m_covariance->coeff(par, par));
+    return m_oParameters.template getUncertainty<par>();
   }
 
   /// @brief Access covariance matrix of track parameters
@@ -154,18 +150,18 @@ class SingleFreeParameters {
   /// @return Raw pointer to covariance matrix (can be a nullptr)
   ///
   /// @sa ParameterSet::getCovariance
-  const std::optional<CovMatrix_t>& covariance() const { return m_covariance; }
+  const std::optional<CovMatrix_t>& covariance() const { return m_oParameters.getCovariance(); }
 
   /// @brief access position in global coordinate system
   ///
   /// @return 3D vector with global position
-  Vector3D position() const { return m_parameters.template head<3>(); }
+  Vector3D position() const { return parameters().template segment<3>(eFreePos0); }
 
   /// @brief access momentum in global coordinate system
   ///
   /// @return 3D vector with global momentum
   Vector3D momentum() const {
-    return m_parameters.template segment<3>(4) / std::abs(get<7>());
+    return parameters().template segment<3>(eFreeDir0) / std::abs(get<eFreeQOverP>());
   }
 
   /// @brief retrieve electric charge
@@ -176,7 +172,13 @@ class SingleFreeParameters {
   /// @brief retrieve time
   ///
   /// @return value of time
-  double time() const { return m_parameters(3); }
+  double time() const { return get<eFreeTime>(); }
+
+  /// @brief access to the internally stored FreeParameterSet
+  ///
+  /// @return FreeParameterSet object holding parameter values and their covariance
+  /// matrix
+  const FullFreeParameterSet& getParameterSet() const { return m_oParameters; }
 
   /// @brief Equality operator
   ///
@@ -190,19 +192,8 @@ class SingleFreeParameters {
       return false;
     }
 
-    // Both have covariance matrices set
-    if ((m_covariance.has_value() && casted->m_covariance.has_value()) &&
-        (*m_covariance != *casted->m_covariance)) {
-      return false;
-    }
-    // Only one has a covariance matrix set
-    if ((m_covariance.has_value() && !casted->m_covariance.has_value()) ||
-        (!m_covariance.has_value() && casted->m_covariance.has_value())) {
-      return false;
-    }
-
     return (m_oChargePolicy == casted->m_oChargePolicy &&
-            m_parameters == casted->m_parameters);
+            m_oParameters == casted->m_oParameters);
   }
 
   /// @brief inequality operator
@@ -223,7 +214,7 @@ class SingleFreeParameters {
   template <unsigned int par,
             std::enable_if_t<par<eFreeParametersSize, int> = 0> void set(
                 const GeometryContext& /*gctx*/, ParValue_t newValue) {
-    m_parameters(par) = newValue;
+    m_oParameters.setParameter<par>(newValue);
   }
 
   /// @brief Print information to output stream
@@ -267,10 +258,9 @@ class SingleFreeParameters {
   }
 
  private:
-  FreeVector m_parameters;       ///< Parameter vector
+   FullFreeParameterSet m_oParameters;  ///< FreeParameterSet object holding the
+                                   /// parameter values and covariance matrix
   ChargePolicy m_oChargePolicy;  ///< charge policy object distinguishing
                                  /// between charged and neutral tracks
-  std::optional<CovMatrix_t> m_covariance;  ///< Covariance matrix
 };
-
 }  // namespace Acts

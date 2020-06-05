@@ -13,7 +13,7 @@
 
 #include "Acts/EventData/detail/coordinate_transformations.hpp"
 #include "Acts/Utilities/Definitions.hpp"
-#include "Acts/EventData/FreeParameterSet.hpp"
+#include "Acts/EventData/ParameterSet.hpp"
 
 namespace Acts {
 

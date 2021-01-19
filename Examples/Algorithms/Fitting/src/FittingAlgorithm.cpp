@@ -36,6 +36,7 @@ FW::FittingAlgorithm::FittingAlgorithm(Config cfg, Acts::Logging::Level level)
 
 FW::ProcessCode FW::FittingAlgorithm::execute(
     const FW::AlgorithmContext& ctx) const {
+std::cout << "FITTING ALGORITHM" << std::endl;
   // Read input data
   const auto sourceLinks =
       ctx.eventStore.get<EffectiveSourceLinkContainer>(m_cfg.inputSourceLinks);

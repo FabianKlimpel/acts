@@ -259,7 +259,8 @@ FW::RootEffectiveTrajectoryWriter::RootEffectiveTrajectoryWriter(
     m_outputTree->Branch("eDir0_smt", &m_eDir0_smt);
     m_outputTree->Branch("eDir1_smt", &m_eDir1_smt);
     m_outputTree->Branch("eDir2_smt", &m_eDir2_smt);
-    m_outputTree->Branch("eQOP_smt", &m_eQOP_smt);
+    m_outputTree->Branch("eQOP_bound_smt", &m_eQOP_bound_smt);
+    m_outputTree->Branch("eQOP_free_smt", &m_eQOP_free_smt);
     m_outputTree->Branch("eT_smt", &m_eT_smt);
     m_outputTree->Branch("res_eLOC0_smt", &m_res_eLOC0_smt);
     m_outputTree->Branch("res_eLOC1_smt", &m_res_eLOC1_smt);
@@ -271,7 +272,8 @@ FW::RootEffectiveTrajectoryWriter::RootEffectiveTrajectoryWriter(
     m_outputTree->Branch("res_eDir0_smt", &m_res_eDir0_smt);
     m_outputTree->Branch("res_eDir1_smt", &m_res_eDir1_smt);
     m_outputTree->Branch("res_eDir2_smt", &m_res_eDir2_smt);
-    m_outputTree->Branch("res_eQOP_smt", &m_res_eQOP_smt);
+    m_outputTree->Branch("res_eQOP_bound_smt", &m_res_eQOP_bound_smt);
+    m_outputTree->Branch("res_eQOP_free_smt", &m_res_eQOP_free_smt);
     m_outputTree->Branch("res_eT_smt", &m_res_eT_smt);
     m_outputTree->Branch("err_eLOC0_smt", &m_err_eLOC0_smt);
     m_outputTree->Branch("err_eLOC1_smt", &m_err_eLOC1_smt);
@@ -283,7 +285,8 @@ FW::RootEffectiveTrajectoryWriter::RootEffectiveTrajectoryWriter(
     m_outputTree->Branch("err_eDir0_smt", &m_err_eDir0_smt);
     m_outputTree->Branch("err_eDir1_smt", &m_err_eDir1_smt);
     m_outputTree->Branch("err_eDir2_smt", &m_err_eDir2_smt);
-    m_outputTree->Branch("err_eQOP_smt", &m_err_eQOP_smt);
+    m_outputTree->Branch("err_eQOP_bound_smt", &m_err_eQOP_bound_smt);
+    m_outputTree->Branch("err_eQOP_free_smt", &m_err_eQOP_free_smt);
     m_outputTree->Branch("err_eT_smt", &m_err_eT_smt);
     m_outputTree->Branch("pull_eLOC0_smt", &m_pull_eLOC0_smt);
     m_outputTree->Branch("pull_eLOC1_smt", &m_pull_eLOC1_smt);
@@ -822,8 +825,8 @@ const Acts::Vector2D mc = mc1 + mc2;
 		  if (state.hasBoundSmoothed()) {
 			smoothed = true;
 			m_nSmoothed++;
-//~ if(m_nSmoothed == 3)
-//~ {
+if(m_nSmoothed == 3)
+{
 			auto parameters = state.boundSmoothed();
 			auto covariance = state.boundSmoothedCovariance();
 			// local hit residual info
@@ -865,7 +868,7 @@ Acts::Vector2D mc = mc1 + mc2;
 			m_eLOC1_smt.push_back(parameters[Acts::eBoundLoc1]);
 			m_ePHI_smt.push_back(parameters[Acts::eBoundPhi]);
 			m_eTHETA_smt.push_back(parameters[Acts::eBoundTheta]);
-			m_eQOP_smt.push_back(parameters[Acts::eBoundQOverP]);
+			m_eQOP_bound_smt.push_back(parameters[Acts::eBoundQOverP]);
 			m_eT_smt.push_back(parameters[Acts::eBoundTime]);
 
 			// smoothed residual
@@ -873,7 +876,7 @@ Acts::Vector2D mc = mc1 + mc2;
 			m_res_eLOC1_smt.push_back(parameters[Acts::eBoundLoc1] - truthLOC1);
 			m_res_ePHI_smt.push_back(parameters[Acts::eBoundPhi] - truthPHI);
 			m_res_eTHETA_smt.push_back(parameters[Acts::eBoundTheta] - truthTHETA);
-			m_res_eQOP_smt.push_back(parameters[Acts::eBoundQOverP] - truthQOP);
+			m_res_eQOP_bound_smt.push_back(parameters[Acts::eBoundQOverP] - truthQOP);
 			m_res_eT_smt.push_back(parameters[Acts::eBoundTime] - truthTIME);
 
 			// smoothed parameter error
@@ -885,7 +888,7 @@ Acts::Vector2D mc = mc1 + mc2;
 				sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
 			m_err_eTHETA_smt.push_back(
 				sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
-			m_err_eQOP_smt.push_back(
+			m_err_eQOP_bound_smt.push_back(
 				sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
 			m_err_eT_smt.push_back(
 				sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
@@ -932,25 +935,26 @@ std::cout << "Position: " << freePosition.transpose() << " | " << state.pathLeng
 			m_pz_smt.push_back(freeMomentum.z());
 			m_pT_smt.push_back(perp(freeMomentum));
 			m_eta_smt.push_back(eta(freePosition));
+}
 		  } else {
 			// push default values if no smoothed parameter
 			m_eLOC0_smt.push_back(-99.);
 			m_eLOC1_smt.push_back(-99.);
 			m_ePHI_smt.push_back(-99.);
 			m_eTHETA_smt.push_back(-99.);
-			m_eQOP_smt.push_back(-99.);
+			m_eQOP_bound_smt.push_back(-99.);
 			m_eT_smt.push_back(-99.);
 			//~ m_res_eLOC0_smt.push_back(-99.);
 			//~ m_res_eLOC1_smt.push_back(-99.);
 			//~ m_res_ePHI_smt.push_back(-99.);
 			//~ m_res_eTHETA_smt.push_back(-99.);
-			//~ m_res_eQOP_smt.push_back(-99.);
+			//~ m_res_eQOP_bound_smt.push_back(-99.);
 			//~ m_res_eT_smt.push_back(-99.);
 			//~ m_err_eLOC0_smt.push_back(-99);
 			//~ m_err_eLOC1_smt.push_back(-99);
 			//~ m_err_ePHI_smt.push_back(-99);
 			//~ m_err_eTHETA_smt.push_back(-99);
-			//~ m_err_eQOP_smt.push_back(-99);
+			//~ m_err_eQOP_bound_smt.push_back(-99);
 			//~ m_err_eT_smt.push_back(-99);
 			//~ m_pull_eLOC0_smt.push_back(-99.);
 			//~ m_pull_eLOC1_smt.push_back(-99.);
@@ -1457,7 +1461,7 @@ Acts::Vector3D mc;// = mc1 + mc2;
 			m_eDir0_smt.push_back(parameters[Acts::eFreeDir0]);
 			m_eDir1_smt.push_back(parameters[Acts::eFreeDir1]);
 			m_eDir2_smt.push_back(parameters[Acts::eFreeDir2]);
-			m_eQOP_smt.push_back(parameters[Acts::eFreeQOverP]);
+			m_eQOP_free_smt.push_back(parameters[Acts::eFreeQOverP]);
 			
 			Acts::Vector3D momentum;
 			momentum = parameters.template segment<3>(Acts::eFreeDir0);
@@ -1479,7 +1483,7 @@ Acts::Vector3D mc;// = mc1 + mc2;
 			m_res_eDir0_smt.push_back(parameters[Acts::eFreeDir0] - truthHit.unitDirection().x());
 			m_res_eDir1_smt.push_back(parameters[Acts::eFreeDir1] - truthHit.unitDirection().y());
 			m_res_eDir2_smt.push_back(parameters[Acts::eFreeDir2] - truthHit.unitDirection().z());
-			m_res_eQOP_smt.push_back(parameters[Acts::eFreeQOverP] - m_t_charge / truthHit.momentum4Before().template head<3>().norm());
+			m_res_eQOP_free_smt.push_back(parameters[Acts::eFreeQOverP] - m_t_charge / truthHit.momentum4Before().template head<3>().norm());
 
 			// Smoothed parameter error
 			m_err_ePos0_smt.push_back(
@@ -1496,7 +1500,7 @@ Acts::Vector3D mc;// = mc1 + mc2;
 				sqrt(covariance(Acts::eFreeDir1, Acts::eFreeDir1)));
 			m_err_eDir2_smt.push_back(
 				sqrt(covariance(Acts::eFreeDir2, Acts::eFreeDir2)));
-			m_err_eQOP_smt.push_back(
+			m_err_eQOP_free_smt.push_back(
 				sqrt(covariance(Acts::eFreeQOverP, Acts::eFreeQOverP)));
 
 			// Smoothed parameter pull
@@ -1532,7 +1536,7 @@ Acts::Vector3D mc;// = mc1 + mc2;
 			m_eDir0_smt.push_back(-99.);
 			m_eDir1_smt.push_back(-99.);
 			m_eDir2_smt.push_back(-99.);
-			m_eQOP_smt.push_back(-99.);
+			m_eQOP_free_smt.push_back(-99.);
 			m_res_ePos0_smt.push_back(-99.);
 			m_res_ePos1_smt.push_back(-99.);
 			m_res_ePos2_smt.push_back(-99.);
@@ -1540,7 +1544,7 @@ Acts::Vector3D mc;// = mc1 + mc2;
 			m_res_eDir0_smt.push_back(-99.);
 			m_res_eDir1_smt.push_back(-99.);
 			m_res_eDir2_smt.push_back(-99.);
-			m_res_eQOP_smt.push_back(-99.);
+			m_res_eQOP_free_smt.push_back(-99.);
 			m_err_ePos0_smt.push_back(-99);
 			m_err_ePos1_smt.push_back(-99);
 			m_err_ePos2_smt.push_back(-99);
@@ -1548,7 +1552,7 @@ Acts::Vector3D mc;// = mc1 + mc2;
 			m_err_eDir0_smt.push_back(-99);
 			m_err_eDir1_smt.push_back(-99);
 			m_err_eDir2_smt.push_back(-99);
-			m_err_eQOP_smt.push_back(-99);
+			m_err_eQOP_free_smt.push_back(-99);
 			m_pull_ePos0_smt.push_back(-99.);
 			m_pull_ePos1_smt.push_back(-99.);
 			m_pull_ePos2_smt.push_back(-99.);
@@ -1740,7 +1744,8 @@ Acts::Vector3D mc;// = mc1 + mc2;
     m_eDir0_smt.clear();
     m_eDir1_smt.clear();
     m_eDir2_smt.clear();
-    m_eQOP_smt.clear();
+    m_eQOP_bound_smt.clear();
+    m_eQOP_free_smt.clear();
     m_eT_smt.clear();
     m_res_eLOC0_smt.clear();
     m_res_eLOC1_smt.clear();
@@ -1752,7 +1757,8 @@ Acts::Vector3D mc;// = mc1 + mc2;
     m_res_eDir0_smt.clear();
     m_res_eDir1_smt.clear();
     m_res_eDir2_smt.clear();
-    m_res_eQOP_smt.clear();
+    m_res_eQOP_free_smt.clear();
+    m_res_eQOP_bound_smt.clear();
     m_res_eT_smt.clear();
     m_err_eLOC0_smt.clear();
     m_err_eLOC1_smt.clear();
@@ -1764,7 +1770,8 @@ Acts::Vector3D mc;// = mc1 + mc2;
     m_err_eDir0_smt.clear();
     m_err_eDir1_smt.clear();
     m_err_eDir2_smt.clear();
-    m_err_eQOP_smt.clear();
+    m_err_eQOP_free_smt.clear();
+    m_err_eQOP_bound_smt.clear();
     m_err_eT_smt.clear();
     m_pull_eLOC0_smt.clear();
     m_pull_eLOC1_smt.clear();

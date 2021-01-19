@@ -273,7 +273,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_eDir0_smt;        ///< predicted parameter ePHI
   std::vector<float> m_eDir1_smt;      ///< predicted parameter eTHETA
   std::vector<float> m_eDir2_smt;      ///< predicted parameter eTHETA
-  std::vector<float> m_eQOP_smt;        ///< predicted parameter eQOP
+  std::vector<float> m_eQOP_bound_smt;        ///< predicted parameter eQOP
+  std::vector<float> m_eQOP_free_smt;        ///< predicted parameter eQOP
   std::vector<float> m_eT_smt;          ///< predicted parameter eT
   std::vector<float> m_res_eLOC0_smt;   ///< predicted parameter eLOC0 residual
   std::vector<float> m_res_eLOC1_smt;   ///< predicted parameter eLOC1 residual
@@ -285,7 +286,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_res_eDir0_smt;    ///< predicted parameter ePHI residual
   std::vector<float> m_res_eDir1_smt;  ///< predicted parameter eTHETA residual
   std::vector<float> m_res_eDir2_smt;  ///< predicted parameter eTHETA residual
-  std::vector<float> m_res_eQOP_smt;    ///< predicted parameter eQOP residual
+  std::vector<float> m_res_eQOP_bound_smt;    ///< predicted parameter eQOP residual
+  std::vector<float> m_res_eQOP_free_smt;    ///< predicted parameter eQOP residual
   std::vector<float> m_res_eT_smt;      ///< predicted parameter eT residual
   std::vector<float> m_err_eLOC0_smt;   ///< predicted parameter eLOC0 error
   std::vector<float> m_err_eLOC1_smt;   ///< predicted parameter eLOC1 error
@@ -297,7 +299,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_err_eDir0_smt;    ///< predicted parameter ePHI error
   std::vector<float> m_err_eDir1_smt;  ///< predicted parameter eTHETA error
   std::vector<float> m_err_eDir2_smt;  ///< predicted parameter eTHETA error
-  std::vector<float> m_err_eQOP_smt;    ///< predicted parameter eQOP error
+  std::vector<float> m_err_eQOP_free_smt;    ///< predicted parameter eQOP error
+  std::vector<float> m_err_eQOP_bound_smt;    ///< predicted parameter eQOP error
   std::vector<float> m_err_eT_smt;      ///< predicted parameter eT error
   std::vector<float> m_pull_eLOC0_smt;  ///< predicted parameter eLOC0 pull
   std::vector<float> m_pull_eLOC1_smt;  ///< predicted parameter eLOC1 pull

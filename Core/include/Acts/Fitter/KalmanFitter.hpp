@@ -481,46 +481,46 @@ class KalmanFitter {
             stepper.resetState(state.stepping, st.boundFiltered(),
                                BoundMatrix(st.boundFilteredCovariance()), *startSurface, backward,
                                state.options.maxStepSize);
-if(backwardFiltering)
-{
-		using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
-        // Create a detached track state proxy
-        auto tempTrackTip = result.fittedStates.addTrackState(TrackStatePropMask::BoundAll);
-        // now get track state proxy back
-        TrackState trackStateProxy  =
-            result.fittedStates.getTrackState(tempTrackTip);
+//~ if(backwardFiltering)
+//~ {
+		//~ using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
+        //~ // Create a detached track state proxy
+        //~ auto tempTrackTip = result.fittedStates.addTrackState(TrackStatePropMask::BoundAll);
+        //~ // now get track state proxy back
+        //~ TrackState trackStateProxy  =
+            //~ result.fittedStates.getTrackState(tempTrackTip);
 		
-            // For the last measurement state, smoothed is filtered
-		  trackStateProxy.boundPredicted() = st.boundPredicted();
-		  trackStateProxy.boundPredictedCovariance() =
-			  st.boundPredictedCovariance();
+            //~ // For the last measurement state, smoothed is filtered
+		  //~ trackStateProxy.boundPredicted() = st.boundPredicted();
+		  //~ trackStateProxy.boundPredictedCovariance() =
+			  //~ st.boundPredictedCovariance();
 
-			// Assign the source link to the detached track state                  	
-			using Source = source_link_t;
-			if constexpr (std::is_same<Source, MinimalSourceLink>::value)
-			{
-				Source sl;
-				Measurement<Source, BoundParametersIndices, eBoundLoc0, eBoundLoc1, eBoundPhi, eBoundTheta, eBoundQOverP, eBoundTime> 
-					meas(startSurface->getSharedPtr(), sl, *st.boundFilteredCovariance(), st.boundFiltered()[0], st.boundFiltered()[1], st.boundFiltered()[2], st.boundFiltered()[3]
-					,st.boundFiltered()[4], st.boundFiltered()[5]);
-				trackStateProxy.uncalibrated() = sl;
-			}
-			else
-			{
-				Source sl(*surface, {}, 2, st.boundFiltered(), *st.boundFilteredCovariance());
-				trackStateProxy.uncalibrated() = sl;
-			}
-			auto updateRes = m_updater(state.geoContext, trackStateProxy, backward);
+			//~ // Assign the source link to the detached track state                  	
+			//~ using Source = source_link_t;
+			//~ if constexpr (std::is_same<Source, MinimalSourceLink>::value)
+			//~ {
+				//~ Source sl;
+				//~ Measurement<Source, BoundParametersIndices, eBoundLoc0, eBoundLoc1, eBoundPhi, eBoundTheta, eBoundQOverP, eBoundTime> 
+					//~ meas(startSurface->getSharedPtr(), sl, st.boundFilteredCovariance(), st.boundFiltered()[0], st.boundFiltered()[1], st.boundFiltered()[2], st.boundFiltered()[3]
+					//~ ,st.boundFiltered()[4], st.boundFiltered()[5]);
+				//~ trackStateProxy.uncalibrated() = sl;
+			//~ }
+			//~ else
+			//~ {
+				//~ Source sl(*startSurface, {}, 2, st.boundFiltered(), *st.boundFilteredCovariance());
+				//~ trackStateProxy.uncalibrated() = sl;
+			//~ }
+			//~ auto updateRes = m_updater(state.geoContext, trackStateProxy, backward);
 			
-		  st.boundSmoothed() = trackStateProxy.boundFiltered();
-		  st.boundSmoothedCovariance() =
-			  trackStateProxy.boundFilteredCovariance();      
-}
-else
-{                        
+		  //~ st.boundSmoothed() = trackStateProxy.boundFiltered();
+		  //~ st.boundSmoothedCovariance() =
+			  //~ trackStateProxy.boundFilteredCovariance();      
+//~ }
+//~ else
+//~ {                        
             st.boundSmoothed() = st.boundFiltered();
             st.boundSmoothedCovariance() = st.boundFilteredCovariance();
-}            
+//~ }            
             result.passedAgainObject.push_back(startSurface);
 
             // Update material effects for last measurement state in backward
@@ -545,38 +545,38 @@ else
                                state.options.maxStepSize);
 
             // For the last measurement state, smoothed is filtered
-if(backwardFiltering)
-{
-		using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
-        // Create a detached track state proxy
-        auto tempTrackTip = result.fittedStates.addTrackState(TrackStatePropMask::FreeAll);
-        // now get track state proxy back
-        TrackState trackStateProxy  =
-            result.fittedStates.getTrackState(tempTrackTip);
+//~ if(backwardFiltering)
+//~ {
+		//~ using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
+        //~ // Create a detached track state proxy
+        //~ auto tempTrackTip = result.fittedStates.addTrackState(TrackStatePropMask::FreeAll);
+        //~ // now get track state proxy back
+        //~ TrackState trackStateProxy  =
+            //~ result.fittedStates.getTrackState(tempTrackTip);
 		
-            // For the last measurement state, smoothed is filtered
-		  trackStateProxy.freePredicted() = st.freePredicted();
-		  trackStateProxy.freePredictedCovariance() =
-			  st.freePredictedCovariance();
+            //~ // For the last measurement state, smoothed is filtered
+		  //~ trackStateProxy.freePredicted() = st.freePredicted();
+		  //~ trackStateProxy.freePredictedCovariance() =
+			  //~ st.freePredictedCovariance();
 
-			// Assign the source link to the detached track state                  	
-			using Source = source_link_t;
-			if constexpr (!std::is_same<Source, MinimalSourceLink>::value)
-			{
-				Source sl(sourceLink.referenceObject(), {}, 3, st.freeFiltered(), *st.freeFilteredCovariance());
-				trackStateProxy.uncalibrated() = sl;
-			}
-			auto updateRes = m_updater(state.geoContext, trackStateProxy, backward);
+			//~ // Assign the source link to the detached track state                  	
+			//~ using Source = source_link_t;
+			//~ if constexpr (!std::is_same<Source, MinimalSourceLink>::value)
+			//~ {
+				//~ Source sl(st.uncalibrated().referenceObject(), {}, 3, st.freeFiltered(), *st.freeFilteredCovariance());
+				//~ trackStateProxy.uncalibrated() = sl;
+			//~ }
+			//~ auto updateRes = m_updater(state.geoContext, trackStateProxy, backward);
 			
-		  st.freeSmoothed() = trackStateProxy.freeFiltered();
-		  st.freeSmoothedCovariance() =
-			  trackStateProxy.freeFilteredCovariance();      
-}
-else
-{                        
+		  //~ st.freeSmoothed() = trackStateProxy.freeFiltered();
+		  //~ st.freeSmoothedCovariance() =
+			  //~ trackStateProxy.freeFilteredCovariance();      
+//~ }
+//~ else
+//~ {                        
             st.freeSmoothed() = st.freeFiltered();
             st.freeSmoothedCovariance() = st.freeFilteredCovariance();
-}            
+//~ }            
             result.passedAgainObject.push_back(startVolume);
             
               updateFreeMeasurementCandidates(state, stepper, result);
@@ -1515,12 +1515,13 @@ public:
            const std::vector<source_link_t>& freeSourcelinks = {}) const
       -> std::enable_if_t<!isDirectNavigator,
                           Result<KalmanFitterResult<source_link_t>>> {
+std::cout << "KF Begin" << sourcelinks.size() << " | " << freeSourcelinks.size() << std::endl;
 	using ActorType = Actor<source_link_t, updater_t, smoother_t, outlier_finder_t, calibrator_t>;
     using KalmanResult = typename ActorType::result_type;
    
     // Create relevant options for the propagation options
-    //~ auto kalmanOptions = buildPropagatorOptions<ActorType>(sourcelinks, freeSourcelinks, kfOptions);
-    auto kalmanOptions = buildPropagatorOptions<ActorType>(sourcelinks, {}, kfOptions);
+    auto kalmanOptions = buildPropagatorOptions<ActorType>(sourcelinks, freeSourcelinks, kfOptions);
+    //~ auto kalmanOptions = buildPropagatorOptions<ActorType>(sourcelinks, {}, kfOptions);
 
     // Run the fitter
     auto result = m_propagator.template propagate(sParameters, kalmanOptions);

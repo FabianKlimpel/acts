@@ -56,12 +56,16 @@ using StandardBetheHeitler =
 ///       input energy.
 using StandardChargedElectroMagneticInteractions =
     InteractionList<detail::StandardScattering, detail::StandardBetheBloch,
-                    detail::StandardBetheHeitler>;
+                    detail::StandardBetheHeitler, detail::ParametrizedNuclearInteraction>;
 
-/// Construct the standard electro-magnetic interactions for charged particles.
+using StandardNeutralPhysicsList =
+    PhysicsList<detail::StandardScattering, detail::ParametrizedNuclearInteraction>;
+    
 ///
 /// @param pMin lower p cut on output particles
 StandardChargedElectroMagneticInteractions
 makeStandardChargedElectroMagneticInteractions(double minimumAbsMomentum);
+
+StandardNeutralPhysicsList makeNeutralPhysicsList(double minimumAbsMomentum);
 
 }  // namespace ActsFatras

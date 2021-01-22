@@ -87,7 +87,7 @@ FW::ProcessCode FW::HitSmearing::execute(const AlgorithmContext& ctx) const {
 			  glob[Acts::eFreePos0] = hit.position()[Acts::eFreePos0] + m_cfg.sigmaGlob0 * stdNormal(rng);
 			  glob[Acts::eFreePos1] = hit.position()[Acts::eFreePos1] + m_cfg.sigmaGlob1 * stdNormal(rng);
 			  glob[Acts::eFreePos2] = hit.position()[Acts::eFreePos2] + m_cfg.sigmaGlob2 * stdNormal(rng);
-//~ std::cout << "Truth/SmearedHits: " << hit.position().transpose() << " | " << glob.transpose() << std::endl;
+
 			  // create source link at the end of the container
 			  auto it = sourceLinks.emplace_hint(sourceLinks.end(), *vol, hit, 3,
 												 glob, covGlob);
@@ -104,19 +104,41 @@ FW::ProcessCode FW::HitSmearing::execute(const AlgorithmContext& ctx) const {
 		}
       continue;
     }
-    
+/// BOUND TPC
+bool odd = true;
+const Acts::TrackingVolume* trVol = m_cfg.trackingGeometry->lowestTrackingVolume(ctx.geoContext, moduleHits.begin()->position());
+double err0 = m_cfg.sigmaLoc0;
+double err1 = m_cfg.sigmaLoc1;
+double deviation = 0.;
+covLoc(Acts::eLOC_0, Acts::eLOC_0) = m_cfg.sigmaLoc0 * m_cfg.sigmaLoc0;
+covLoc(Acts::eLOC_1, Acts::eLOC_1) = m_cfg.sigmaLoc1 * m_cfg.sigmaLoc1;
+//~ if(trVol != nullptr && trVol->volumeName().find("TPC") != std::string::npos)   
+//~ {
+	//~ if(!odd)
+	//~ {
+		//~ odd = true;
+		//~ continue;
+	//~ }
+	//~ covLoc(Acts::eLOC_0, Acts::eLOC_0) = m_cfg.sigmaGlob0 * m_cfg.sigmaGlob0;
+	//~ covLoc(Acts::eLOC_1, Acts::eLOC_1) = m_cfg.sigmaGlob2 * m_cfg.sigmaGlob2;
+	//~ err0 = m_cfg.sigmaGlob0;
+	//~ err1 = m_cfg.sigmaGlob2;
+	//~ odd = false;
+	//~ deviation = 4.58 * stdNormal(rng); // Half thickness of a pad
+//~ }
+	
     // smear all truth hits for this module
     const Acts::Surface* surface = is->second;
     for (const auto& hit : moduleHits) {
       // transform global position into local coordinates
       Acts::Vector2D pos(0, 0);
-      surface->globalToLocal(ctx.geoContext, hit.position(),
+      surface->globalToLocal(ctx.geoContext, hit.position(),// + deviation * hit.unitDirection(),
                              hit.unitDirection(), pos);
-
+	  
       // smear truth to create local measurement
       Acts::BoundVector loc = Acts::BoundVector::Zero();
-      loc[Acts::eLOC_0] = pos[0] + m_cfg.sigmaLoc0 * stdNormal(rng);
-      loc[Acts::eLOC_1] = pos[1] + m_cfg.sigmaLoc1 * stdNormal(rng);
+      loc[Acts::eLOC_0] = pos[0] + err0 * stdNormal(rng);
+      loc[Acts::eLOC_1] = pos[1] + err1 * stdNormal(rng);
 
       // create source link at the end of the container
       auto it = sourceLinks.emplace_hint(sourceLinks.end(), *surface, hit, 2,

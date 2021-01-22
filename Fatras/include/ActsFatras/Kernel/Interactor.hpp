@@ -114,7 +114,7 @@ struct Interactor {
     }
     // If we are not on a surface, there is nothing for us to do
     if (not state.navigation.currentSurface) {
-		//~ if(state.navigation.currentVolume && state.navigation.currentVolume->volumeMaterial()) // TODO: Without material available, this will be replaced by string comparison
+/// HERE
 		if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
 		{
 			const auto part =
@@ -126,7 +126,6 @@ struct Interactor {
 							  stepper.time(state.stepping))
 				.setDirection(stepper.direction(state.stepping))
 				.setAbsMomentum(stepper.momentum(state.stepping));
-//~ std::cout << "Interactor: " << part.position4().transpose() << std::endl;			
 			result.particle = part;	
 			result.hits.emplace_back(
 			  state.navigation.currentVolume->geoID(), part.particleId(),
@@ -135,7 +134,7 @@ struct Interactor {
 		}
 		return;
     }
-    
+/// HERE    
     if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
 		return;
 		

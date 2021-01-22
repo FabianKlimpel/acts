@@ -196,9 +196,12 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_pull_eQOP_bound_prt;    ///< predicted parameter eQOP pull
   std::vector<float> m_pull_eQOP_free_prt;    ///< predicted parameter eQOP pull
   std::vector<float> m_pull_eT_prt;      ///< predicted parameter eT pull
-  std::vector<float> m_x_prt;            ///< predicted global x
-  std::vector<float> m_y_prt;            ///< predicted global y
-  std::vector<float> m_z_prt;            ///< predicted global z
+  std::vector<float> m_x_prtb;            ///< predicted global x
+  std::vector<float> m_y_prtb;            ///< predicted global y
+  std::vector<float> m_z_prtb;            ///< predicted global z
+  std::vector<float> m_x_prtf;            ///< predicted global x
+  std::vector<float> m_y_prtf;            ///< predicted global y
+  std::vector<float> m_z_prtf;            ///< predicted global z
   std::vector<float> m_px_prt;           ///< predicted momentum px
   std::vector<float> m_py_prt;           ///< predicted momentum py
   std::vector<float> m_pz_prt;           ///< predicted momentum pz
@@ -259,9 +262,12 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_pull_eQOP_bound_flt;    ///< predicted parameter eQOP pull
   std::vector<float> m_pull_eQOP_free_flt;    ///< predicted parameter eQOP pull
   std::vector<float> m_pull_eT_flt;      ///< predicted parameter eT pull
-  std::vector<float> m_x_flt;            ///< predicted global x
-  std::vector<float> m_y_flt;            ///< predicted global y
-  std::vector<float> m_z_flt;            ///< predicted global z
+  std::vector<float> m_x_fltb;            ///< predicted global x
+  std::vector<float> m_y_fltb;            ///< predicted global y
+  std::vector<float> m_z_fltb;            ///< predicted global z
+  std::vector<float> m_x_fltf;            ///< predicted global x
+  std::vector<float> m_y_fltf;            ///< predicted global y
+  std::vector<float> m_z_fltf;            ///< predicted global z
   std::vector<float> m_px_flt;           ///< predicted momentum px
   std::vector<float> m_py_flt;           ///< predicted momentum py
   std::vector<float> m_pz_flt;           ///< predicted momentum pz

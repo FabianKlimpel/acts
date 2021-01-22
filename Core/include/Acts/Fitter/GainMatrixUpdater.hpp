@@ -165,14 +165,15 @@ private:
 				  if(direction == forward)
 				  {
 					v = calibrated_covariance.diagonal().sum();
+					//~ v = calibrated_covariance(0,0) + calibrated_covariance(1,1);
 				  }
 				  else
 				  {
 					//~ v = 0.175 * 0.175 + 0.175 * 0.175 + 0.750 * 0.750;
 					v = 0.;
-std::cout << "DISTANCE: " << predicted.template segment<3>(eFreePos0).transpose() << " | " << 
-	calibrated.template segment<3>(eFreePos0).transpose() << " | " << 
-	(predicted.template segment<3>(eFreePos0) - calibrated.template segment<3>(eFreePos0)).norm() << std::endl;
+//~ std::cout << "DISTANCE: " << predicted.template segment<3>(eFreePos0).transpose() << " | " << 
+	//~ calibrated.template segment<3>(eFreePos0).transpose() << " | " << 
+	//~ (predicted.template segment<3>(eFreePos0) - calibrated.template segment<3>(eFreePos0)).norm() << std::endl;
 //~ 1 0 0 0 0 0 0 0
 //~ 0 1 0 0 0 0 0 0
 //~ 0 0 1 0 0 0 0 0
@@ -211,6 +212,7 @@ std::cout << "DISTANCE: " << predicted.template segment<3>(eFreePos0).transpose(
 				  filteredCovariance = (ActsSymMatrixD<parameter_size_t>::Identity() - K * H) * (predictedCovariance - B)
 					+ B * H.transpose() * K.transpose();
 				  predictedCovariance = predictedCovariance - B;
+std::cout << "Cov:\n" << filteredCovariance << std::endl;
 			  } else {
 				  filteredCovariance =
 					  (ActsSymMatrixD<parameter_size_t>::Identity() - K * H) * predictedCovariance;

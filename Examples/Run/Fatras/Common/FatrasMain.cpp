@@ -68,10 +68,10 @@ int FW::fatrasMain(int argc, char* argv[],
 
   // The geometry, material and decoration
   auto geometry = FW::Geometry::build(vm, *detector);
-  auto tGeometry = geometry.first;
-  //~ std::shared_ptr<const Acts::TrackingGeometry> tGeometry = geometry.first;
+  //~ auto tGeometry = geometry.first;
+  std::shared_ptr<const Acts::TrackingGeometry> tGeometry = geometry.first;
 std::cout << "type of the geometry: " << typeid(tGeometry).name() << std::endl;
-//~ exit(1);
+
   auto contextDecorators = geometry.second;
   // Add the decorator to the sequencer
   for (auto cdr : contextDecorators) {

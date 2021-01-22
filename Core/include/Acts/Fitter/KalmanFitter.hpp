@@ -996,8 +996,14 @@ bool entryFound = false;
 					}
 					else
 					{
-						Source sl(*surface, {}, 5, boundParams.parameters(), *boundParams.covariance());
-						trackStateProxy.uncalibrated() = sl;
+						//~ if(state.navigation.currentVolume != nullptr && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
+						//~ {
+							//~ Source sl(*surface, {}, 3, boundParams.parameters(), *boundParams.covariance());
+							//~ trackStateProxy.uncalibrated() = sl;
+						//~ } else {
+							Source sl(*surface, {}, 5, boundParams.parameters(), *boundParams.covariance());
+							trackStateProxy.uncalibrated() = sl;
+						//~ }
 					}
 					entryFound = true;
                   return false;
@@ -1519,7 +1525,7 @@ public:
            const std::vector<source_link_t>& freeSourcelinks = {}) const
       -> std::enable_if_t<!isDirectNavigator,
                           Result<KalmanFitterResult<source_link_t>>> {
-
+std::cout << "Source links: " << sourcelinks.size() << " | " << freeSourcelinks.size() << std::endl;
 	using ActorType = Actor<source_link_t, updater_t, smoother_t, outlier_finder_t, calibrator_t>;
     using KalmanResult = typename ActorType::result_type;
    

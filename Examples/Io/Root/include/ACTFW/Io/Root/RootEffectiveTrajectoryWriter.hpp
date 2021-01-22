@@ -154,7 +154,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_eDir0_prt;        ///< predicted parameter ePHI
   std::vector<float> m_eDir1_prt;      ///< predicted parameter eTHETA
   std::vector<float> m_eDir2_prt;      ///< predicted parameter eTHETA
-  std::vector<float> m_eQOP_prt;        ///< predicted parameter eQOP
+  std::vector<float> m_eQOP_bound_prt;        ///< predicted parameter eQOP
+  std::vector<float> m_eQOP_free_prt;        ///< predicted parameter eQOP
   std::vector<float> m_eT_prt;          ///< predicted parameter eT
   std::vector<float> m_res_eLOC0_prt;   ///< predicted parameter eLOC0 residual
   std::vector<float> m_res_eLOC1_prt;   ///< predicted parameter eLOC1 residual
@@ -166,7 +167,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_res_eDir0_prt;    ///< predicted parameter ePHI residual
   std::vector<float> m_res_eDir1_prt;  ///< predicted parameter eTHETA residual
   std::vector<float> m_res_eDir2_prt;  ///< predicted parameter eTHETA residual
-  std::vector<float> m_res_eQOP_prt;    ///< predicted parameter eQOP residual
+  std::vector<float> m_res_eQOP_bound_prt;    ///< predicted parameter eQOP residual
+  std::vector<float> m_res_eQOP_free_prt;    ///< predicted parameter eQOP residual
   std::vector<float> m_res_eT_prt;      ///< predicted parameter eT residual
   std::vector<float> m_err_eLOC0_prt;   ///< predicted parameter eLOC0 error
   std::vector<float> m_err_eLOC1_prt;   ///< predicted parameter eLOC1 error
@@ -178,7 +180,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_err_eDir0_prt;    ///< predicted parameter ePHI error
   std::vector<float> m_err_eDir1_prt;  ///< predicted parameter eTHETA error
   std::vector<float> m_err_eDir2_prt;  ///< predicted parameter eTHETA error
-  std::vector<float> m_err_eQOP_prt;    ///< predicted parameter eQOP error
+  std::vector<float> m_err_eQOP_bound_prt;    ///< predicted parameter eQOP error
+  std::vector<float> m_err_eQOP_free_prt;    ///< predicted parameter eQOP error
   std::vector<float> m_err_eT_prt;      ///< predicted parameter eT error
   std::vector<float> m_pull_eLOC0_prt;  ///< predicted parameter eLOC0 pull
   std::vector<float> m_pull_eLOC1_prt;  ///< predicted parameter eLOC1 pull
@@ -190,7 +193,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_pull_eDir0_prt;   ///< predicted parameter ePHI pull
   std::vector<float> m_pull_eDir1_prt;  ///< predicted parameter eTHETA pull
   std::vector<float> m_pull_eDir2_prt;  ///< predicted parameter eTHETA pull
-  std::vector<float> m_pull_eQOP_prt;    ///< predicted parameter eQOP pull
+  std::vector<float> m_pull_eQOP_bound_prt;    ///< predicted parameter eQOP pull
+  std::vector<float> m_pull_eQOP_free_prt;    ///< predicted parameter eQOP pull
   std::vector<float> m_pull_eT_prt;      ///< predicted parameter eT pull
   std::vector<float> m_x_prt;            ///< predicted global x
   std::vector<float> m_y_prt;            ///< predicted global y
@@ -213,7 +217,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_eDir0_flt;        ///< predicted parameter ePHI
   std::vector<float> m_eDir1_flt;      ///< predicted parameter eTHETA
   std::vector<float> m_eDir2_flt;      ///< predicted parameter eTHETA
-  std::vector<float> m_eQOP_flt;        ///< predicted parameter eQOP
+  std::vector<float> m_eQOP_bound_flt;        ///< predicted parameter eQOP
+  std::vector<float> m_eQOP_free_flt;        ///< predicted parameter eQOP
   std::vector<float> m_eT_flt;          ///< predicted parameter eT
   std::vector<float> m_res_eLOC0_flt;   ///< predicted parameter eLOC0 residual
   std::vector<float> m_res_eLOC1_flt;   ///< predicted parameter eLOC1 residual
@@ -225,7 +230,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_res_eDir0_flt;    ///< predicted parameter ePHI residual
   std::vector<float> m_res_eDir1_flt;  ///< predicted parameter eTHETA residual
   std::vector<float> m_res_eDir2_flt;  ///< predicted parameter eTHETA residual
-  std::vector<float> m_res_eQOP_flt;    ///< predicted parameter eQOP residual
+  std::vector<float> m_res_eQOP_bound_flt;    ///< predicted parameter eQOP residual
+  std::vector<float> m_res_eQOP_free_flt;    ///< predicted parameter eQOP residual
   std::vector<float> m_res_eT_flt;      ///< predicted parameter eT residual
   std::vector<float> m_err_eLOC0_flt;   ///< predicted parameter eLOC0 error
   std::vector<float> m_err_eLOC1_flt;   ///< predicted parameter eLOC1 error
@@ -237,7 +243,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_err_eDir0_flt;    ///< predicted parameter ePHI error
   std::vector<float> m_err_eDir1_flt;  ///< predicted parameter eTHETA error
   std::vector<float> m_err_eDir2_flt;  ///< predicted parameter eTHETA error
-  std::vector<float> m_err_eQOP_flt;    ///< predicted parameter eQOP error
+  std::vector<float> m_err_eQOP_bound_flt;    ///< predicted parameter eQOP error
+  std::vector<float> m_err_eQOP_free_flt;    ///< predicted parameter eQOP error
   std::vector<float> m_err_eT_flt;      ///< predicted parameter eT error
   std::vector<float> m_pull_eLOC0_flt;  ///< predicted parameter eLOC0 pull
   std::vector<float> m_pull_eLOC1_flt;  ///< predicted parameter eLOC1 pull
@@ -249,7 +256,8 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_pull_eDir0_flt;   ///< predicted parameter ePHI pull
   std::vector<float> m_pull_eDir1_flt;  ///< predicted parameter eTHETA pull
   std::vector<float> m_pull_eDir2_flt;  ///< predicted parameter eTHETA pull
-  std::vector<float> m_pull_eQOP_flt;    ///< predicted parameter eQOP pull
+  std::vector<float> m_pull_eQOP_bound_flt;    ///< predicted parameter eQOP pull
+  std::vector<float> m_pull_eQOP_free_flt;    ///< predicted parameter eQOP pull
   std::vector<float> m_pull_eT_flt;      ///< predicted parameter eT pull
   std::vector<float> m_x_flt;            ///< predicted global x
   std::vector<float> m_y_flt;            ///< predicted global y
@@ -312,11 +320,15 @@ class RootEffectiveTrajectoryWriter final : public WriterT<std::vector<Effective
   std::vector<float> m_pull_eDir0_smt;   ///< predicted parameter ePHI pull
   std::vector<float> m_pull_eDir1_smt;  ///< predicted parameter eTHETA pull
   std::vector<float> m_pull_eDir2_smt;  ///< predicted parameter eTHETA pull
-  std::vector<float> m_pull_eQOP_smt;    ///< predicted parameter eQOP pull
+  std::vector<float> m_pull_eQOP_bound_smt;    ///< predicted parameter eQOP pull
+  std::vector<float> m_pull_eQOP_free_smt;    ///< predicted parameter eQOP pull
   std::vector<float> m_pull_eT_smt;      ///< predicted parameter eT pull
-  std::vector<float> m_x_smt;            ///< predicted global x
-  std::vector<float> m_y_smt;            ///< predicted global y
-  std::vector<float> m_z_smt;            ///< predicted global z
+  std::vector<float> m_x_smtf;            ///< predicted global x
+  std::vector<float> m_y_smtf;            ///< predicted global y
+  std::vector<float> m_z_smtf;            ///< predicted global z
+  std::vector<float> m_x_smtb;            ///< predicted global x
+  std::vector<float> m_y_smtb;            ///< predicted global y
+  std::vector<float> m_z_smtb;            ///< predicted global z
   std::vector<float> m_px_smt;           ///< predicted momentum px
   std::vector<float> m_py_smt;           ///< predicted momentum py
   std::vector<float> m_pz_smt;           ///< predicted momentum pz

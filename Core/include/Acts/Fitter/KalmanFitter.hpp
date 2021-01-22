@@ -520,6 +520,9 @@ class KalmanFitter {
 //~ {                        
             st.boundSmoothed() = st.boundFiltered();
             st.boundSmoothedCovariance() = st.boundFilteredCovariance();
+BoundSymMatrix bsm = BoundMatrix(st.boundFilteredCovariance());
+double indx = bsm(Acts::eBoundQOverP, Acts::eBoundQOverP);
+std::cout << "Reverse uncertainty: " << sqrt(indx) << std::endl;
 //~ }            
             result.passedAgainObject.push_back(startSurface);
 
@@ -967,6 +970,7 @@ class KalmanFitter {
 		if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, FreeToBoundMatrix>::value)
 		{
 			trackState.jacobianFreeToBound() = jac;
+std::cout << "Bound uncertainty: " << sqrt((*boundParams.covariance())(Acts::eBoundQOverP, Acts::eBoundQOverP)) << std::endl;
 		}
 		return trackState;}, jacobian);
 		
@@ -976,9 +980,9 @@ bool entryFound = false;
           result.fittedStates.applyBackwards(
               result.trackTip, [&](auto trackState) {
                 if (trackState.uncalibrated() == sourcelink_it->second) {
-                  trackStateProxy.boundPredicted() = trackState.boundPredicted();
+                  trackStateProxy.boundPredicted() = trackState.boundFiltered(); // Edit
                   trackStateProxy.boundPredictedCovariance() =
-                      trackState.boundPredictedCovariance();
+                      trackState.boundFilteredCovariance(); // Edit
 
 					// Assign the source link to the detached track state                  	
                   	using Source = source_link_t;
@@ -992,7 +996,7 @@ bool entryFound = false;
 					}
 					else
 					{
-						Source sl(*surface, {}, 2, boundParams.parameters(), *boundParams.covariance());
+						Source sl(*surface, {}, 5, boundParams.parameters(), *boundParams.covariance());
 						trackStateProxy.uncalibrated() = sl;
 					}
 					entryFound = true;
@@ -1110,15 +1114,15 @@ bool entryFound = false;
           result.fittedStates.applyBackwards(
               result.trackTip, [&](auto trackState) {
                 if (trackState.uncalibrated() == sourceLink) {
-                  trackStateProxy.freePredicted() = trackState.freePredicted();
+                  trackStateProxy.freePredicted() = trackState.freeFiltered();
                   trackStateProxy.freePredictedCovariance() =
-                      trackState.freePredictedCovariance();
+                      trackState.freeFilteredCovariance();
 
 					// Assign the source link to the detached track state                  	
                   	using Source = source_link_t;
                   	if constexpr (!std::is_same<Source, MinimalSourceLink>::value)
                   	{
-						Source sl(sourceLink.referenceObject(), {}, 3, freeParams.parameters(), *freeParams.covariance());
+						Source sl(sourceLink.referenceObject(), {}, 4, freeParams.parameters(), *freeParams.covariance());
 						trackStateProxy.uncalibrated() = sl;
 					}
                entryFound = true;
@@ -1515,7 +1519,7 @@ public:
            const std::vector<source_link_t>& freeSourcelinks = {}) const
       -> std::enable_if_t<!isDirectNavigator,
                           Result<KalmanFitterResult<source_link_t>>> {
-std::cout << "KF Begin" << sourcelinks.size() << " | " << freeSourcelinks.size() << std::endl;
+
 	using ActorType = Actor<source_link_t, updater_t, smoother_t, outlier_finder_t, calibrator_t>;
     using KalmanResult = typename ActorType::result_type;
    

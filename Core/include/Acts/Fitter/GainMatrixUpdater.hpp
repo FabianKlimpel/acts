@@ -156,17 +156,33 @@ private:
 			  ActsMatrixD<parameter_size_t, measdim> K;
 			  ActsMatrixD<parameter_size_t, measdim> Q;
 			  ActsMatrixD<parameter_size_t, parameter_size_t> B;
-			  if constexpr (parameter_size_t == 8 && measdim == 3)
+			  if constexpr (parameter_size_t == 8 && !std::is_same<decltype(trackState.calibrated()), MinimalSourceLink>::value)
 			  {
 				  Vector3D dir = predicted.template segment<3>(eFreeDir0);
 				  ActsSymMatrixD<3> dirMat = dir * dir.transpose();
 				  ActsSymMatrixD<3> dirMat2 = dirMat + predictedCovariance.template block<3, 3>(eFreeDir0, eFreeDir0);
 				  double v;
 				  if(direction == forward)
+				  {
 					v = calibrated_covariance.diagonal().sum();
+				  }
 				  else
-					v = 0.175 * 0.175 + 0.175 * 0.175 + 0.750 * 0.750;
-				  B = H.transpose() * v * dirMat2 * H;
+				  {
+					//~ v = 0.175 * 0.175 + 0.175 * 0.175 + 0.750 * 0.750;
+					v = 0.;
+std::cout << "DISTANCE: " << predicted.template segment<3>(eFreePos0).transpose() << " | " << 
+	calibrated.template segment<3>(eFreePos0).transpose() << " | " << 
+	(predicted.template segment<3>(eFreePos0) - calibrated.template segment<3>(eFreePos0)).norm() << std::endl;
+//~ 1 0 0 0 0 0 0 0
+//~ 0 1 0 0 0 0 0 0
+//~ 0 0 1 0 0 0 0 0
+				  }
+				  ActsMatrixD<3, parameter_size_t> H2 = ActsMatrixD<3, parameter_size_t>::Zero();
+				  H2(0,0) = 1;
+				  H2(1,1) = 1;
+				  H2(2,2) = 1;
+				  B = H2.transpose() * v * dirMat2 * H2;
+				  
 				  predictedCovariance = predictedCovariance + B;
 				  
 				  K =
@@ -190,7 +206,7 @@ private:
 				return false;  // abort execution
 			  }
 			  filtered = predicted + K * (calibrated - H * predicted);
-			  if constexpr (parameter_size_t == 8 && measdim == 3)
+			  if constexpr (parameter_size_t == 8 && !std::is_same<decltype(trackState.calibrated()), MinimalSourceLink>::value)
 			  {
 				  filteredCovariance = (ActsSymMatrixD<parameter_size_t>::Identity() - K * H) * (predictedCovariance - B)
 					+ B * H.transpose() * K.transpose();

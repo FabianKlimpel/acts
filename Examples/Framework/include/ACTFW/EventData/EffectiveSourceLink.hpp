@@ -49,10 +49,9 @@ class EffectiveSourceLink {
   using MeasurementType = std::variant<Acts::Measurement<EffectiveSourceLink, Acts::BoundParametersIndices, Acts::BoundParametersIndices::eLOC_0>,
 						  Acts::Measurement<EffectiveSourceLink, Acts::BoundParametersIndices,Acts::BoundParametersIndices::eLOC_0, Acts::BoundParametersIndices::eLOC_1>, 
 						  Acts::Measurement<EffectiveSourceLink, Acts::FreeParametersIndices, Acts::FreeParametersIndices::eFreePos0, Acts::FreeParametersIndices::eFreePos1, Acts::FreeParametersIndices::eFreePos2>,
-						  //~ Acts::Measurement<EffectiveSourceLink, Acts::FreeParametersIndices, Acts::FreeParametersIndices::eFreePos0, Acts::FreeParametersIndices::eFreePos1, 
-									//~ Acts::FreeParametersIndices::eFreePos2, Acts::FreeParametersIndices::eFreeTime, Acts::FreeParametersIndices::eFreeDir0, Acts::FreeParametersIndices::eFreeDir1,
-									//~ Acts::FreeParametersIndices::eFreeDir2, Acts::FreeParametersIndices::eFreeQOverP>,
-						  Acts::Measurement<EffectiveSourceLink, Acts::BoundParametersIndices,Acts::BoundParametersIndices::eLOC_0, Acts::BoundParametersIndices::eLOC_1, Acts::BoundParametersIndices::eBoundPhi, Acts::BoundParametersIndices::eBoundTheta, Acts::BoundParametersIndices::eBoundQOverP, Acts::BoundParametersIndices::eBoundTime>>;
+						  Acts::Measurement<EffectiveSourceLink, Acts::FreeParametersIndices, Acts::FreeParametersIndices::eFreePos0, Acts::FreeParametersIndices::eFreePos1, 
+									Acts::FreeParametersIndices::eFreePos2, Acts::FreeParametersIndices::eFreeQOverP>,
+						  Acts::Measurement<EffectiveSourceLink, Acts::BoundParametersIndices,Acts::BoundParametersIndices::eLOC_0, Acts::BoundParametersIndices::eLOC_1, Acts::BoundParametersIndices::eBoundPhi, Acts::BoundParametersIndices::eBoundTheta, Acts::BoundParametersIndices::eBoundQOverP>>;
 						  
   constexpr Acts::GeometryID geometryId() const { return m_geometryId; }
   constexpr const Acts::GeometryObject& referenceObject() const { return *m_referenceObject; }
@@ -69,11 +68,27 @@ class EffectiveSourceLink {
 								   Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_1>(
 			  dynamic_cast<const Acts::Surface*>(m_referenceObject)->getSharedPtr(), *this, m_cov.topLeftCorner<2, 2>(),
 			  m_values[0], m_values[1]);
-		} else if (m_dim == 6) {
+		} else if (m_dim == 5) {
 		  return Acts::Measurement<EffectiveSourceLink, Acts::BoundParametersIndices,
-								   Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_1, Acts::ParDef::eBoundPhi, Acts::ParDef::eBoundTheta, Acts::ParDef::eBoundQOverP, Acts::ParDef::eBoundTime>(
-			  dynamic_cast<const Acts::Surface*>(m_referenceObject)->getSharedPtr(), *this, m_cov.topLeftCorner<6, 6>(),
-			  m_values[0], m_values[1], m_values[2], m_values[3], m_values[4], m_values[5]);
+								   Acts::ParDef::eLOC_0, Acts::ParDef::eLOC_1, Acts::ParDef::eBoundPhi, Acts::ParDef::eBoundTheta, Acts::ParDef::eBoundQOverP>(
+			  dynamic_cast<const Acts::Surface*>(m_referenceObject)->getSharedPtr(), *this, m_cov.topLeftCorner<5, 5>(),
+			  m_values[0], m_values[1], m_values[2], m_values[3], m_values[4]);
+		} else if (m_dim == 4) {
+			Acts::ActsSymMatrixD<4> mat;
+			for(unsigned int row = 0; row < 8; row++)
+				for(unsigned int col = 0; col < 8; col++)
+				{
+					if((row >= 3 && row < 7) || (col >= 3 && col < 7))
+						continue;
+					unsigned int i = (row == 7) ? 4 : row;
+					unsigned int j = (col == 7) ? 4 : col;
+					mat(i,j) = m_cov(row,col);
+				}
+		  return Acts::Measurement<EffectiveSourceLink, Acts::FreeParametersIndices,
+								    Acts::FreeParametersIndices::eFreePos0, Acts::FreeParametersIndices::eFreePos1, 
+									Acts::FreeParametersIndices::eFreePos2, Acts::FreeParametersIndices::eFreeQOverP>(
+			  dynamic_cast<const Acts::Volume*>(m_referenceObject)->getSharedPtr(), *this, mat,
+			  m_values[0], m_values[1], m_values[2], m_values[7]);
 	    } else if (m_dim == 3) {
 			return Acts::Measurement<EffectiveSourceLink, Acts::FreeParametersIndices,
 								   Acts::FreeParametersIndices::eFreePos0, Acts::FreeParametersIndices::eFreePos1, Acts::FreeParametersIndices::eFreePos2>(

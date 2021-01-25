@@ -114,7 +114,6 @@ NuclearInteraction::globalAngle(ActsFatras::Particle::Scalar phi1,
                               std::cos(theta2));
   const Acts::Vector3 vectorSum = rotZ * rotY * vector2;
 
-
   // Calculate the global angles
   const float theta = std::acos(vectorSum.z() / vectorSum.norm());
   const float phi = std::atan2(vectorSum.y(), vectorSum.x());

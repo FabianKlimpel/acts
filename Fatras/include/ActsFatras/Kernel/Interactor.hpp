@@ -50,7 +50,7 @@ struct InteractorResult {
   /// Hits created by the propagated particle.
   std::vector<Hit> hits;
 };
-
+bool interactorEven = false;
 /// Fatras interactor plugin for the Acts propagator.
 ///
 /// This plugin must be added to the action list of the propagator and is the
@@ -115,28 +115,53 @@ struct Interactor {
     // If we are not on a surface, there is nothing for us to do
     if (not state.navigation.currentSurface) {
 /// HERE
-		if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
-		{
-			const auto part =
-				Particle(particle)
-				// include passed material from the initial particle state
-				.setMaterialPassed(particle.pathInX0() + result.pathInX0, // TODO: Is the material tracked in dense environment?
-								   particle.pathInL0() + result.pathInL0)
-				.setPosition4(stepper.position(state.stepping),
-							  stepper.time(state.stepping))
-				.setDirection(stepper.direction(state.stepping))
-				.setAbsMomentum(stepper.momentum(state.stepping));
-			result.particle = part;	
-			result.hits.emplace_back(
-			  state.navigation.currentVolume->geoID(), part.particleId(),
-			  part.position4(), part.momentum4(), part.momentum4(), result.hits.size());
-			// TODO: Material doesn't mean sensitive; requires a selection as for the surfaces
-		}
+		//~ if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
+		//~ {
+			//~ const auto part =
+				//~ Particle(particle)
+				//~ // include passed material from the initial particle state
+				//~ .setMaterialPassed(particle.pathInX0() + result.pathInX0, // TODO: Is the material tracked in dense environment?
+								   //~ particle.pathInL0() + result.pathInL0)
+				//~ .setPosition4(stepper.position(state.stepping),
+							  //~ stepper.time(state.stepping))
+				//~ .setDirection(stepper.direction(state.stepping))
+				//~ .setAbsMomentum(stepper.momentum(state.stepping));
+			//~ result.particle = part;	
+			//~ result.hits.emplace_back(
+			  //~ state.navigation.currentVolume->geoID(), part.particleId(),
+			  //~ part.position4(), part.momentum4(), part.momentum4(), result.hits.size());
+			//~ // TODO: Material doesn't mean sensitive; requires a selection as for the surfaces
+		//~ }
 		return;
     }
 /// HERE    
-    if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
-		return;
+    //~ if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
+		//~ return;
+		
+		//~ if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
+		//~ {
+			//~ if(interactorEven)
+			//~ {
+				//~ const auto part =
+					//~ Particle(particle)
+					//~ // include passed material from the initial particle state
+					//~ .setMaterialPassed(particle.pathInX0() + result.pathInX0, // TODO: Is the material tracked in dense environment?
+									   //~ particle.pathInL0() + result.pathInL0)
+					//~ .setPosition4(stepper.position(state.stepping),
+								  //~ stepper.time(state.stepping))
+					//~ .setDirection(stepper.direction(state.stepping))
+					//~ .setAbsMomentum(stepper.momentum(state.stepping));
+				//~ result.particle = part;	
+				//~ result.hits.emplace_back(
+				  //~ state.navigation.currentVolume->geoID(), part.particleId(),
+				  //~ part.position4(), part.momentum4(), part.momentum4(), result.hits.size());
+				//~ // TODO: Material doesn't mean sensitive; requires a selection as for the surfaces
+				//~ interactorEven = false;
+			//~ } else {
+				//~ interactorEven = true;
+			//~ }
+			//~ return;
+		//~ }
 		
     const Acts::Surface &surface = *state.navigation.currentSurface;
 

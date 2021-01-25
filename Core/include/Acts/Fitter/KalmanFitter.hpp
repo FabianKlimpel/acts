@@ -996,14 +996,14 @@ bool entryFound = false;
 					}
 					else
 					{
-						//~ if(state.navigation.currentVolume != nullptr && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
-						//~ {
-							//~ Source sl(*surface, {}, 3, boundParams.parameters(), *boundParams.covariance());
-							//~ trackStateProxy.uncalibrated() = sl;
-						//~ } else {
+						if(state.navigation.currentVolume != nullptr && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
+						{
+							Source sl(*surface, {}, 2, boundParams.parameters(), *boundParams.covariance());
+							trackStateProxy.uncalibrated() = sl;
+						} else {
 							Source sl(*surface, {}, 5, boundParams.parameters(), *boundParams.covariance());
 							trackStateProxy.uncalibrated() = sl;
-						//~ }
+						}
 					}
 					entryFound = true;
                   return false;
@@ -1128,7 +1128,7 @@ bool entryFound = false;
                   	using Source = source_link_t;
                   	if constexpr (!std::is_same<Source, MinimalSourceLink>::value)
                   	{
-						Source sl(sourceLink.referenceObject(), {}, 4, freeParams.parameters(), *freeParams.covariance());
+						Source sl(sourceLink.referenceObject(), {}, 3, freeParams.parameters(), *freeParams.covariance());
 						trackStateProxy.uncalibrated() = sl;
 					}
                entryFound = true;

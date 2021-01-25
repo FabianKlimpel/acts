@@ -165,7 +165,6 @@ private:
 				  if(direction == forward)
 				  {
 					v = calibrated_covariance.diagonal().sum();
-					//~ v = calibrated_covariance(0,0) + calibrated_covariance(1,1);
 				  }
 				  else
 				  {
@@ -212,7 +211,19 @@ private:
 				  filteredCovariance = (ActsSymMatrixD<parameter_size_t>::Identity() - K * H) * (predictedCovariance - B)
 					+ B * H.transpose() * K.transpose();
 				  predictedCovariance = predictedCovariance - B;
-std::cout << "Cov:\n" << filteredCovariance << std::endl;
+  //~ if(direction == backward)
+  //~ {
+	  //~ bool nanVal = false;
+	  //~ for(unsigned int i = 0; i < 8; i++)
+		//~ if(!std::isfinite(sqrt(filteredCovariance(i, i))))
+			//~ nanVal = true;
+	  //~ if(nanVal)
+	  //~ {
+		  //~ filtered = calibrated;
+		  //~ filteredCovariance = calibrated_covariance;
+	  //~ }
+  //~ }
+//~ std::cout << "Cov:\n" << filteredCovariance << std::endl;
 			  } else {
 				  filteredCovariance =
 					  (ActsSymMatrixD<parameter_size_t>::Identity() - K * H) * predictedCovariance;

@@ -16,7 +16,6 @@
 #include "ActsFatras/Selectors/KinematicCasts.hpp"
 #include "ActsFatras/Selectors/ParticleSelectors.hpp"
 #include "ActsFatras/Selectors/SelectorHelpers.hpp"
-#include "ActsFatras/Physics/NuclearInteraction/NuclearInteraction.hpp"
 
 namespace ActsFatras {
 namespace detail {

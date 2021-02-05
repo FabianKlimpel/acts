@@ -59,7 +59,7 @@ Particle::Scalar NuclearInteraction::sampleContinuousValues(
   if (distribution.second.empty()) {
     return std::numeric_limits<Scalar>::infinity();
   }
-
+std::cout << "nbins: " << distribution.first.size() << " " << distribution.second.size() << std::endl;
   // Find the bin
   const uint32_t int_rnd = UINT32_MAX * rnd;
   // Fast exit for non-normalised CDFs like interaction probabiltiy
@@ -69,7 +69,7 @@ Particle::Scalar NuclearInteraction::sampleContinuousValues(
                                    distribution.second.end(), int_rnd);
   size_t iBin = std::min((size_t)std::distance(distribution.second.begin(), it),
                          distribution.second.size() - 1);
-
+std::cout << "iBin: " << iBin << std::endl;
   if (interpolate) {
     // Interpolate between neighbouring bins and return a diced intermediate
     // value

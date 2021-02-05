@@ -78,7 +78,6 @@ struct SimulationActor {
   template <typename propagator_state_t, typename stepper_t>
   void operator()(propagator_state_t &state, stepper_t &stepper,
                   result_type &result) const {
-std::cout << " Interactor call " << std::endl;
     assert(generator and "The generator pointer must be valid");
 
     // actors are called once more after the propagation terminated

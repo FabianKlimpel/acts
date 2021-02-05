@@ -36,6 +36,10 @@ const detail::Parameters& NuclearInteraction::findParameters(
 unsigned int NuclearInteraction::sampleDiscreteValues(
     double rnd,
     const detail::Parameters::CumulativeDistribution& distribution) const {
+std::cout << "Mult: " << distribution.first.size() << " " << distribution.second.size() << std::endl;
+for(unsigned int i = 0; i < distribution.first.size(); i++)
+	std::cout << distribution.first[i] << " | " << distribution.second[i] << std::endl;
+			
   // Fast exit
   if (distribution.second.empty()) {
     return 0;
@@ -43,6 +47,7 @@ unsigned int NuclearInteraction::sampleDiscreteValues(
 
   // Find the bin
   const uint32_t int_rnd = UINT32_MAX * rnd;
+std::cout << "Rnd: " << int_rnd << " " << rnd << " " << std::endl;
   const auto it = std::upper_bound(distribution.second.begin(),
                                    distribution.second.end(), int_rnd);
   size_t iBin = std::min((size_t)std::distance(distribution.second.begin(), it),
@@ -59,7 +64,7 @@ Particle::Scalar NuclearInteraction::sampleContinuousValues(
   if (distribution.second.empty()) {
     return std::numeric_limits<Scalar>::infinity();
   }
-std::cout << "nbins: " << distribution.first.size() << " " << distribution.second.size() << std::endl;
+
   // Find the bin
   const uint32_t int_rnd = UINT32_MAX * rnd;
   // Fast exit for non-normalised CDFs like interaction probabiltiy
@@ -69,7 +74,7 @@ std::cout << "nbins: " << distribution.first.size() << " " << distribution.secon
                                    distribution.second.end(), int_rnd);
   size_t iBin = std::min((size_t)std::distance(distribution.second.begin(), it),
                          distribution.second.size() - 1);
-std::cout << "iBin: " << iBin << std::endl;
+
   if (interpolate) {
     // Interpolate between neighbouring bins and return a diced intermediate
     // value

@@ -288,9 +288,9 @@ cumulativeMultiplicityProbability(const EventCollection& events,
   }
 
   // Build and fill the histograms
-  TH1F* softHisto = new TH1F("", "", std::min(maxSoft, multiplicityMax) + 1,
+  TH1F* softHisto = new TH1F("", "", std::min(maxSoft, multiplicityMax),
                              minSoft, std::min(maxSoft, multiplicityMax));
-  TH1F* hardHisto = new TH1F("", "", std::max(maxHard, multiplicityMax) + 1,
+  TH1F* hardHisto = new TH1F("", "", std::max(maxHard, multiplicityMax),
                              minHard, std::min(maxHard, multiplicityMax));
   for (const EventFraction& event : events) {
     if (event.multiplicity <= multiplicityMax) {

@@ -35,6 +35,8 @@
 #include "Acts/Utilities/Logger.hpp"
 #include "Acts/Utilities/Result.hpp"
 
+#include "Acts/EventData/detail/coordinate_transformations.hpp"
+
 #include <functional>
 #include <map>
 #include <memory>
@@ -838,6 +840,40 @@ std::cout << "Reverse uncertainty: " << sqrt(indx) << std::endl;
     Result<void> filter(State& state, const KalmanStepper& stepper, result_type& result) const {
 	  const source_link_t& sourceLink = *result.currentFreeMeasurements[0].sourceLink;
 
+/// Artificial bound measurements
+auto [curvParams, jacobian, pathLength] = stepper.curvilinearState(state.stepping);
+// Build the TS proxy
+using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
+TrackState trackStateProxy = std::visit([&](const auto& jac) -> TrackState {
+	TrackStatePropMask mask = std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value ? 
+					TrackStatePropMask::BoundPredicted | TrackStatePropMask::BoundSmoothed | TrackStatePropMask::JacobianBoundToBound :
+					TrackStatePropMask::BoundPredicted | TrackStatePropMask::BoundSmoothed | TrackStatePropMask::JacobianFreeToBound;
+result.trackTip = result.fittedStates.addTrackState(mask, result.trackTip);
+auto trackState =
+	result.fittedStates.getTrackState(result.trackTip);
+if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value)
+{
+	trackState.jacobianBoundToBound() = jac;
+}
+if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, FreeToBoundMatrix>::value)
+{
+	trackState.jacobianFreeToBound() = jac;
+}
+return trackState;}, jacobian);
+// Fill the proxy
+trackStateProxy.uncalibrated() = sourceLink;
+trackStateProxy.boundPredicted() = curvParams.parameters();
+trackStateProxy.boundPredictedCovariance() = *curvParams.covariance();
+trackStateProxy.pathLength() = pathLength;
+
+Vector3D globalMeasPos = std::visit([](const auto& meas) -> const Vector3D { return meas.parameters(); },
+                    *sourceLink);
+
+BoundVector localMeasParams = detail::global2parameters(state.geoContext, globalMeasPos, Vector3D(), state.stepping.q, 0, curvParams.referenceSurface());
+ActsSymMatrixD<2> cov;
+cov << 750. * Acts::UnitConstants::um * 750. * Acts::UnitConstants::um, 0, 0, 175. * Acts::UnitConstants::um * 175. * Acts::UnitConstants::um;
+Measurement locMeas(curvParams.referenceSurface(), sourceLink, cov, localMeasParams.template head<2>());
+/**
 		auto [freeParams, jacobian, pathLength] = stepper.freeState(state.stepping);
 
 		using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
@@ -915,6 +951,7 @@ std::cout << "Reverse uncertainty: " << sqrt(indx) << std::endl;
             typeFlags.set(TrackStateFlag::OutlierFlag);
           }
         }
+*/
         // We count the processed state
         ++result.processedStates;
       return Result<void>::success();

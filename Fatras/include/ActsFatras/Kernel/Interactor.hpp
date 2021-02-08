@@ -114,7 +114,7 @@ struct Interactor {
     }
     // If we are not on a surface, there is nothing for us to do
     if (not state.navigation.currentSurface) {
-/// HERE
+/// HERE (should be deprecated)
 		//~ if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
 		//~ {
 			//~ const auto part =
@@ -134,7 +134,7 @@ struct Interactor {
 		//~ }
 		return;
     }
-/// HERE    
+/// HERE (should be deprecated)
     //~ if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
 		//~ return;
 		

@@ -77,6 +77,7 @@ FW::ProcessCode FW::HitSmearing::execute(const AlgorithmContext& ctx) const {
     // check if we should create hits for this surface
     const auto is = m_surfaces.find(moduleGeoId);
     if (is == m_surfaces.end()) {
+/// FREE TPC
 		const Acts::TrackingVolume* trVol = m_cfg.trackingGeometry->lowestTrackingVolume(ctx.geoContext, moduleHits.begin()->position()); // TODO: Association by geoId
 		if(trVol != nullptr && trVol->volumeName().find("TPC") != std::string::npos)
 		{
@@ -104,13 +105,14 @@ FW::ProcessCode FW::HitSmearing::execute(const AlgorithmContext& ctx) const {
 		}
       continue;
     }
-/// BOUND TPC
+
 const Acts::TrackingVolume* trVol = m_cfg.trackingGeometry->lowestTrackingVolume(ctx.geoContext, moduleHits.begin()->position());
 double err0 = m_cfg.sigmaLoc0;
 double err1 = m_cfg.sigmaLoc1;
 double deviation = 0.;
 covLoc(Acts::eLOC_0, Acts::eLOC_0) = m_cfg.sigmaLoc0 * m_cfg.sigmaLoc0;
 covLoc(Acts::eLOC_1, Acts::eLOC_1) = m_cfg.sigmaLoc1 * m_cfg.sigmaLoc1;
+/// BOUND TPC
 //~ if(trVol != nullptr && trVol->volumeName().find("TPC") != std::string::npos)   
 //~ {
 	//~ covLoc(Acts::eLOC_0, Acts::eLOC_0) = m_cfg.sigmaGlob0 * m_cfg.sigmaGlob0;

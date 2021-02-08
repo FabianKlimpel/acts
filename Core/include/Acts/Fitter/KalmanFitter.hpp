@@ -866,13 +866,55 @@ trackStateProxy.boundPredicted() = curvParams.parameters();
 trackStateProxy.boundPredictedCovariance() = *curvParams.covariance();
 trackStateProxy.pathLength() = pathLength;
 
-Vector3D globalMeasPos = std::visit([](const auto& meas) -> const Vector3D { return meas.parameters(); },
+// Build & set the measurement
+Vector3D globalMeasPos = std::visit([](const auto& meas) -> const Vector3D { return meas.parameters().template head<3>(); },
                     *sourceLink);
-
-BoundVector localMeasParams = detail::global2parameters(state.geoContext, globalMeasPos, Vector3D(), state.stepping.q, 0, curvParams.referenceSurface());
+BoundVector localMeasParams = detail::coordinate_transformation::global2parameters(state.geoContext, globalMeasPos, Vector3D(), state.stepping.q, 0, curvParams.referenceSurface());
 ActsSymMatrixD<2> cov;
 cov << 750. * Acts::UnitConstants::um * 750. * Acts::UnitConstants::um, 0, 0, 175. * Acts::UnitConstants::um * 175. * Acts::UnitConstants::um;
-Measurement locMeas(curvParams.referenceSurface(), sourceLink, cov, localMeasParams.template head<2>());
+Measurement<source_link_t, BoundParametersIndices, eBoundLoc0, eBoundLoc1> locMeas
+		(curvParams.referenceSurface().getSharedPtr(), sourceLink, cov, localMeasParams.x(), localMeasParams.y());
+trackStateProxy.setCalibrated(locMeas);
+
+// Get and set the type flags
+auto& typeFlags = trackStateProxy.typeFlags();
+typeFlags.set(TrackStateFlag::MaterialFlag);
+typeFlags.set(TrackStateFlag::ParameterFlag);
+
+// If the update is successful, set covariance and
+auto updateRes = m_updater(state.geoContext, trackStateProxy, forward, true);
+
+if (!updateRes.ok()) {
+  ACTS_ERROR("Update step failed: " << updateRes.error());
+  return updateRes.error();
+} else {
+  if (not m_outlierFinder(trackStateProxy)) {
+	// Set the measurement type flag
+	typeFlags.set(TrackStateFlag::MeasurementFlag);
+	// Update the stepping state with filtered parameters
+	ACTS_VERBOSE(
+		"Filtering step successful, updated parameters are : \n"
+		<< trackStateProxy.boundFiltered().transpose());
+	// update stepping state using filtered parameters after kalman
+	// update We need to (re-)construct a BoundParameters instance
+	// here, which is a bit awkward.
+          stepper.update(state.stepping,
+                         MultiTrajectoryHelpers::freeFiltered(
+                             state.options.geoContext, trackStateProxy),
+                         BoundSymMatrix(trackStateProxy.boundFilteredCovariance()));
+	// We count the state with measurement
+	++result.measurementStates;
+  } else {
+	ACTS_VERBOSE(
+		"Filtering step successful. But measurement is deterimined "
+		"to "
+		"be an outlier. Stepping state is not updated.")
+	// Set the outlier type flag
+	typeFlags.set(TrackStateFlag::OutlierFlag);
+  }
+}
+/// End of artificial bound measurements
+
 /**
 		auto [freeParams, jacobian, pathLength] = stepper.freeState(state.stepping);
 

@@ -287,6 +287,7 @@ void recordKinematicParametrisation(
       gDirectory->WriteObject(&invMassVecVec, "InvariantMassEigenvectors");
       gDirectory->WriteObject(&invMassVecMean, "InvariantMassMean");
     }
+
     const auto momDistributions = buildMaps(distributionsMom);
     const auto invMassDistributions = buildMaps(distributionsInvMass);
 

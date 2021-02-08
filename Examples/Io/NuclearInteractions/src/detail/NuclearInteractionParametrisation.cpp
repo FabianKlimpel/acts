@@ -79,7 +79,6 @@ std::pair<Vector, Matrix> calculateMeanAndCovariance(
 EigenspaceComponents calculateEigenspace(const Vector& mean,
                                          const Matrix& covariance) {
   // Calculate eigenvalues and eigenvectors
-  //~ Eigen::EigenSolver<Matrix<multiplicity_t>> es(covariance);
   Eigen::EigenSolver<Matrix> es(covariance);
   Vector eigenvalues = es.eigenvalues().real();
   Matrix eigenvectors = es.eigenvectors().real();
@@ -101,7 +100,7 @@ Parametrisation buildMomentumParameters(const EventCollection& events,
   // Build normal distribution
   auto momentaGaussian = convertEventToGaussian(histos, momenta);
   auto meanAndCovariance =
-      calculateMeanAndCovariance(multiplicity, momentaGaussian);
+      calculateMeanAndCovariance(multiplicity + 1, momentaGaussian);
   // Calculate the transformation into the eigenspace of the covariance matrix
   EigenspaceComponents eigenspaceElements =
       calculateEigenspace(meanAndCovariance.first, meanAndCovariance.second);
@@ -121,7 +120,7 @@ EventProperties prepareMomenta(const EventCollection& events,
       const float initialMomentum = event.initialParticle.absoluteMomentum();
       float sum = 0.;
       std::vector<float> momenta;
-      momenta.reserve(multiplicity);
+      momenta.reserve(multiplicity + 1);
       // Fill the vector with the scaled momenta
       for (const ActsExamples::SimParticle& p : event.finalParticles) {
         sum += p.absoluteMomentum();
@@ -238,33 +237,47 @@ Parametrisation buildInvariantMassParameters(const EventCollection& events,
 std::unordered_map<int, std::unordered_map<int, float>>
 cumulativePDGprobability(const EventCollection& events) {
   std::unordered_map<int, std::unordered_map<int, float>> counter;
-  std::unordered_map<int, float> totalSum;
 
   // Count how many and which particles were created by which particle
   for (const EventFraction& event : events) {
     if (!event.soft) {
       counter[event.initialParticle.pdg()][event.finalParticles[0].pdg()]++;
-      totalSum[event.initialParticle.pdg()]++;
     }
     for (unsigned int i = 1; i < event.multiplicity; i++) {
       counter[event.finalParticles[i - 1].pdg()]
              [event.finalParticles[i].pdg()]++;
-      totalSum[event.finalParticles[i - 1].pdg()]++;
     }
   }
 
   // Build a cumulative distribution
   for (const auto& element : counter) {
+	  float sum = 0;
+	auto prevIt = counter[element.first].begin();
     for (auto it1 = counter[element.first].begin();
          it1 != counter[element.first].end(); it1++) {
+		float binEntry = 0;
+		if(it1 == counter[element.first].begin())
+		{
+			binEntry = it1->second;
+			prevIt = it1;
+		}
+		else
+		{
+			binEntry = it1->second - prevIt->second;
+			prevIt = it1;
+		}
       // Add content to next bins
       for (auto it2 = std::next(it1, 1); it2 != counter[element.first].end();
            it2++) {
-        it2->second += it1->second;
+		it2->second += binEntry;
+		sum = it2->second;
       }
-      // Normalise the entry
-      it1->second /= totalSum[element.first];
     }
+          // Normalise the entry
+    for (auto it1 = counter[element.first].begin();
+         it1 != counter[element.first].end(); it1++) {
+			 it1->second /= sum;
+		 }
   }
   return counter;
 }
@@ -288,10 +301,10 @@ cumulativeMultiplicityProbability(const EventCollection& events,
   }
 
   // Build and fill the histograms
-  TH1F* softHisto = new TH1F("", "", std::min(maxSoft, multiplicityMax),
-                             minSoft, std::min(maxSoft, multiplicityMax));
-  TH1F* hardHisto = new TH1F("", "", std::max(maxHard, multiplicityMax),
-                             minHard, std::min(maxHard, multiplicityMax));
+  TH1F* softHisto = new TH1F("", "", std::min(maxSoft, multiplicityMax) + 1 - maxSoft,
+                             minSoft, std::min(maxSoft, multiplicityMax) + 1);
+  TH1F* hardHisto = new TH1F("", "", std::min(maxHard, multiplicityMax) + 1 - maxHard,
+                             minHard, std::min(maxHard, multiplicityMax) + 1);
   for (const EventFraction& event : events) {
     if (event.multiplicity <= multiplicityMax) {
       if (event.soft)

@@ -54,6 +54,8 @@ struct Parameters {
           eigenvectorsInvariantMass(i, j) = eVecIM[i * sizeInvMass + j];
       }
     }
+    
+    ~ParametersWithFixedMultiplicity() = default;
 
     bool validParametrisation = false;
 

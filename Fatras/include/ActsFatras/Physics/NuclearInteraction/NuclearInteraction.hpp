@@ -92,6 +92,7 @@ struct NuclearInteraction {
   template <typename generator_t>
   bool run(generator_t& generator, Particle& particle,
            std::vector<Particle>& generated) const {
+std::cout << "Particle: " << particle << std::endl;
     // Fast exit: No paramtrization provided
     if (multiParticleParameterisation.empty()) {
       return false;
@@ -358,6 +359,7 @@ std::vector<int> NuclearInteraction::samplePdgIds(
                             float random) { return element.second < random; })
             ->first);
   }
+
   // Set the remaining particles
   for (unsigned int i = 1; i < multiplicity; i++) {
     // Find the producers probability distribution from the last produced
@@ -365,10 +367,10 @@ std::vector<int> NuclearInteraction::samplePdgIds(
     citProducer = pdgMap.cbegin();
     while (citProducer->first != pdgIds[i - 1] && citProducer != pdgMap.end())
       citProducer++;
+      
     // Set the next particle
     const std::vector<std::pair<int, float>>& map = citProducer->second;
     const float rnd = uniformDistribution(generator);
-std::cout << "State: " << pdgIds[i-1] << " " << map.size() << " " << rnd << std::endl;
     pdgIds.push_back(
         std::lower_bound(map.begin(), map.end(), rnd,
                          [](const std::pair<int, float>& element,
@@ -454,6 +456,7 @@ NuclearInteraction::sampleKinematics(
       sampleInvariantMasses(generator, parameters);
   Acts::ActsDynamicVector momenta =
       sampleMomenta(generator, parameters, momentum);
+
   // Repeat momentum evaluation until the parameters match
   while (!match(momenta, invariantMasses, momentum)) {
     if (trials == nMatchingTrialsTotal)

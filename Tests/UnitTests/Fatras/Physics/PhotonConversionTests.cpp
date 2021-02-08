@@ -136,12 +136,13 @@ BOOST_DATA_TEST_CASE(HighMomentumPhoton, Dataset::parametersPhotonConversion,
 
   ActsFatras::PhotonConversion pc;
 
-  // No limits should be set - momentum too low
+  // Should generate a finite x0 limit
   std::pair<Scalar, Scalar> limits = pc.generatePathLimits(gen, particle);
-  BOOST_CHECK_NE(limits.first, std::numeric_limits<Scalar>::infinity());
+  BOOST_CHECK_GT(limits.first, 0);
+  BOOST_CHECK_LT(limits.first, std::numeric_limits<Scalar>::infinity());
   BOOST_CHECK_EQUAL(limits.second, std::numeric_limits<Scalar>::infinity());
 
-  // No particles should be generated - momentum too low
+  // Generates an electron/positron pair
   std::vector<ActsFatras::Particle> generated;
   BOOST_CHECK(pc.run(gen, particle, generated));
   BOOST_CHECK_EQUAL(generated.size(), 2);

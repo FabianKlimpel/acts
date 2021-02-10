@@ -370,7 +370,8 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
       std::to_string(m_eventFractionCollection[0].initialMomentum).c_str());
   gDirectory->mkdir("soft");
   gDirectory->mkdir("hard");
-
+  tf.Flush();
+  
   // Write the nuclear interaction probability
   ACTS_DEBUG("Starting parametrisation of nuclear interaction probability");
   const auto nuclearInteractionProbability =
@@ -384,7 +385,7 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
       buildMap(nuclearInteractionProbability, m_cfg.nSimulatedEvents);
   gDirectory->WriteObject(&mapNIprob.first, "NuclearInteractionBinBorders");
   gDirectory->WriteObject(&mapNIprob.second, "NuclearInteractionBinContents");
-  delete (nuclearInteractionProbability);
+  tf.Flush();
   ACTS_DEBUG("Nuclear interaction probability parametrised");
 
   ACTS_DEBUG("Starting calulcation of probability of interaction type");
@@ -393,6 +394,7 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
       Parametrisation::softProbability(m_eventFractionCollection);
 
   gDirectory->WriteObject(&softProbability, "SoftInteraction");
+  tf.Flush();
   ACTS_DEBUG("Calulcation of probability of interaction type finished");
 
   // Write the PDG id production distribution
@@ -414,6 +416,7 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   gDirectory->WriteObject(&branchingPdgIds, "BranchingPdgIds");
   gDirectory->WriteObject(&targetPdgIds, "TargetPdgIds");
   gDirectory->WriteObject(&targetPdgProbability, "TargetPdgProbability");
+  tf.Flush();
   ACTS_DEBUG(
       "Calulcation of transition probabilities betweend PDG IDs finished");
 
@@ -421,6 +424,7 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   ACTS_DEBUG("Starting parametrisation of multiplicity probabilities");
   const auto multiplicity = Parametrisation::cumulativeMultiplicityProbability(
       m_eventFractionCollection, m_cfg.multiplicityMax);
+  tf.Flush();
   ACTS_DEBUG("Parametrisation of multiplicity probabilities finished");
 
   gDirectory->cd("soft");
@@ -429,11 +433,12 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   const auto multProbSoft = buildMap(multiplicity.first);
   gDirectory->WriteObject(&multProbSoft.first, "MultiplicityBinBorders");
   gDirectory->WriteObject(&multProbSoft.second, "MultiplicityBinContents");
-
+  tf.Flush();
   for (unsigned int i = 1; i <= m_cfg.multiplicityMax; i++) {
     ACTS_DEBUG("Starting parametrisation of final state kinematics for soft " +
                std::to_string(i) + " particle(s) final state");
     recordKinematicParametrisation(m_eventFractionCollection, true, i, m_cfg);
+    tf.Flush();
     ACTS_DEBUG("Parametrisation of final state kinematics for soft " +
                std::to_string(i) + " particle(s) final state finished");
   }
@@ -443,21 +448,23 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   const auto multProbHard = buildMap(multiplicity.second);
   gDirectory->WriteObject(&multProbHard.first, "MultiplicityBinBorders");
   gDirectory->WriteObject(&multProbHard.second, "MultiplicityBinContents");
-
+  tf.Flush();
+  
   for (unsigned int i = 1; i <= m_cfg.multiplicityMax; i++) {
     ACTS_DEBUG("Starting parametrisation of final state kinematics for hard " +
                std::to_string(i) + " particle(s) final state");
     recordKinematicParametrisation(m_eventFractionCollection, false, i, m_cfg);
+    tf.Flush();
     ACTS_DEBUG("Parametrisation of final state kinematics for hard " +
                std::to_string(i) + " particle(s) final state finished");
   }
-  delete (multiplicity.first);
-  delete (multiplicity.second);
-
   gDirectory->cd();
   tf.Write();
   tf.Close();
 
+  delete (nuclearInteractionProbability);
+  delete (multiplicity.first);
+  delete (multiplicity.second);
   return ProcessCode::SUCCESS;
 }
 

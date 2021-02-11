@@ -112,6 +112,8 @@ struct KalmanFitterOptions {
 
   /// Whether to run backward filtering
   bool backwardFiltering = false;
+  
+  bool artificialBoundMeasurements = true;
 };
 
 template <typename source_link_t>
@@ -275,6 +277,8 @@ class KalmanFitter {
     /// Whether run smoothing as backward filtering
     bool backwardFiltering = false;
 
+  bool artificialBoundMeasurements = true;
+  
     /// @brief Kalman actor operation
     ///
     /// @param state is the mutable propagator state object
@@ -282,6 +286,7 @@ class KalmanFitter {
     /// @param result is the mutable result state object
     void operator()(State& state, const KalmanStepper& stepper,
                     result_type& result) const {
+//~ std::cout << "Entered main function" << std::endl;						
       if (result.finished) {
         return;
       }
@@ -305,7 +310,7 @@ class KalmanFitter {
         // been processed
         result.reset = false;
       }
-
+//~ std::cout << "Before free measurements" << std::endl;						
       // Update:
       // - Collect current free measurements
 	  updateFreeMeasurementCandidates(state, stepper, result);
@@ -316,19 +321,28 @@ class KalmanFitter {
 				  // filter
 				  if (state.stepping.navDir == forward and not result.smoothed and
 					not result.forwardFiltered) {
-						if(result.currentFreeMeasurements[0].truthReached)
+						if(artificialBoundMeasurements)
 						{
+							if(result.currentFreeMeasurements[0].truthReached)
+							{
 std::cout << "PathToMeasurement: " << state.stepping.pathAccumulated << std::endl;
-						  filter(state, stepper, result);
+							  filter(state, stepper, result);
 th1f->Fill(state.stepping.pathAccumulated - result.currentFreeMeasurements[0].pathLengthToTruth);
 std::cout << "PathDiff: " << state.stepping.pathAccumulated << " -> " 
 	<< state.stepping.pathAccumulated - result.currentFreeMeasurements[0].pathLengthToTruth << std::endl;
-						  result.currentFreeMeasurements.erase(result.currentFreeMeasurements.begin());
-                        } else {
-						  result.currentFreeMeasurements[0].pathLengthToTruth = state.stepping.pathAccumulated;
-						  result.currentFreeMeasurements[0].truthReached = true;
+							  result.currentFreeMeasurements.erase(result.currentFreeMeasurements.begin());
+	                        } else {
+							  result.currentFreeMeasurements[0].pathLengthToTruth = state.stepping.pathAccumulated;
+							  result.currentFreeMeasurements[0].truthReached = true;
 std::cout << "PathToTruth: " << state.stepping.pathAccumulated << std::endl;
-                        }
+							}
+						} else {
+							if(result.currentFreeMeasurements[0].truthReached)
+							{
+							  filter(state, stepper, result);
+							  result.currentFreeMeasurements.erase(result.currentFreeMeasurements.begin());
+	                        }
+						}
 				  } 
 				  else if (state.stepping.navDir == backward and
 				   result.forwardFiltered) {
@@ -351,7 +365,7 @@ std::cout << "PathToTruth: " << state.stepping.pathAccumulated << std::endl;
 			  stepper.setStepSize(state.stepping, result.currentFreeMeasurements[0].distance * state.stepping.navDir, ConstrainedStep::user);
 		  }
 	  }
-
+//~ std::cout << "After free measurements" << std::endl;						
 	  // Update:
       // - Waiting for a current surface
       auto surface = state.navigation.currentSurface;
@@ -414,7 +428,7 @@ std::cout << "Reverse after" << std::endl;
           }
         }
       }
-      
+
       // Post-finalization:
       // - Progress to target/reference surface and built the final track
       // parameters
@@ -464,6 +478,7 @@ std::cout << "Reverse after" << std::endl;
           result.finished = true;
         }
       }
+//~ std::cout << "Left main function If 2" << std::endl;      
     }
 
     /// @brief Kalman actor operation : reverse direction
@@ -500,63 +515,26 @@ std::cout << "Surface?: " << startSurface << std::endl;
               state.navigation.startLayer =
                   state.navigation.startSurface->associatedLayer();
             //~ }
-std::cout << "StartLayer: " << state.navigation.startLayer << std::endl;
+//~ std::cout << "StartLayer: " << state.navigation.startLayer << std::endl;
             state.navigation.startVolume =
                 state.navigation.startLayer->trackingVolume();
 			}
             state.navigation.targetSurface = targetSurface;
             state.navigation.currentSurface = state.navigation.startSurface;
             state.navigation.currentVolume = state.navigation.startVolume;
-std::cout << "Surface navigation" << std::endl;
+//~ std::cout << "Surface navigation" << std::endl;
             // Update the stepping state
             stepper.resetState(state.stepping, st.boundFiltered(),
                                BoundMatrix(st.boundFilteredCovariance()), *startSurface, backward,
                                state.options.maxStepSize);
-std::cout << "Stepper state reset" << std::endl;
-//~ if(backwardFiltering)
-//~ {
-		//~ using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
-        //~ // Create a detached track state proxy
-        //~ auto tempTrackTip = result.fittedStates.addTrackState(TrackStatePropMask::BoundAll);
-        //~ // now get track state proxy back
-        //~ TrackState trackStateProxy  =
-            //~ result.fittedStates.getTrackState(tempTrackTip);
-		
-            //~ // For the last measurement state, smoothed is filtered
-		  //~ trackStateProxy.boundPredicted() = st.boundPredicted();
-		  //~ trackStateProxy.boundPredictedCovariance() =
-			  //~ st.boundPredictedCovariance();
-
-			//~ // Assign the source link to the detached track state                  	
-			//~ using Source = source_link_t;
-			//~ if constexpr (std::is_same<Source, MinimalSourceLink>::value)
-			//~ {
-				//~ Source sl;
-				//~ Measurement<Source, BoundParametersIndices, eBoundLoc0, eBoundLoc1, eBoundPhi, eBoundTheta, eBoundQOverP, eBoundTime> 
-					//~ meas(startSurface->getSharedPtr(), sl, st.boundFilteredCovariance(), st.boundFiltered()[0], st.boundFiltered()[1], st.boundFiltered()[2], st.boundFiltered()[3]
-					//~ ,st.boundFiltered()[4], st.boundFiltered()[5]);
-				//~ trackStateProxy.uncalibrated() = sl;
-			//~ }
-			//~ else
-			//~ {
-				//~ Source sl(*startSurface, {}, 2, st.boundFiltered(), *st.boundFilteredCovariance());
-				//~ trackStateProxy.uncalibrated() = sl;
-			//~ }
-			//~ auto updateRes = m_updater(state.geoContext, trackStateProxy, backward);
-			
-		  //~ st.boundSmoothed() = trackStateProxy.boundFiltered();
-		  //~ st.boundSmoothedCovariance() =
-			  //~ trackStateProxy.boundFilteredCovariance();      
-//~ }
-//~ else
-//~ {                        
+//~ std::cout << "Stepper state reset" << std::endl;
+           
             st.boundSmoothed() = st.boundFiltered();
             st.boundSmoothedCovariance() = st.boundFilteredCovariance();
-std::cout << "Smoothed parameters set" << std::endl;
+//~ std::cout << "Smoothed parameters set" << std::endl;
 BoundSymMatrix bsm = BoundMatrix(st.boundFilteredCovariance());
 double indx = bsm(Acts::eBoundQOverP, Acts::eBoundQOverP);
 std::cout << "Reverse uncertainty: " << sqrt(indx) << std::endl;
-//~ }            
             result.passedAgainObject.push_back(startSurface);
 
             // Update material effects for last measurement state in backward
@@ -571,63 +549,33 @@ std::cout << "StartVolume? " << startVolume << std::endl;
             state.navigation.startLayer =
 				state.navigation.startVolume->associatedLayer(
                 state.geoContext, stepper.position(state.stepping));
-std::cout << "Step1" << std::endl;                
+//~ std::cout << "Step1" << std::endl;                
             state.navigation.targetSurface = targetSurface;
             state.navigation.currentSurface = state.navigation.startSurface;
             state.navigation.currentVolume = state.navigation.startVolume;
-std::cout << "Step2" << std::endl;            
+//~ std::cout << "Step2" << std::endl;            
             // Update the stepping state
-/// Artificial bound measurements
+            if(artificialBoundMeasurements)
+            {
 			stepper.resetState(state.stepping, MultiTrajectoryHelpers::freeFiltered(
                              state.options.geoContext, st),
 				   BoundMatrix(st.boundFilteredCovariance()), backward,
 				   state.options.maxStepSize);
-/// END Artificial bound measurements
-/**
-            stepper.resetState(state.stepping, st.freeFiltered(),
+			} else {
+				stepper.resetState(state.stepping, st.freeFiltered(),
                                FreeMatrix(st.freeFilteredCovariance()), backward,
                                state.options.maxStepSize);
-*/
-std::cout << "Step3" << std::endl;
+			}
+//~ std::cout << "Step3" << std::endl;
             // For the last measurement state, smoothed is filtered
-//~ if(backwardFiltering)
-//~ {
-		//~ using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
-        //~ // Create a detached track state proxy
-        //~ auto tempTrackTip = result.fittedStates.addTrackState(TrackStatePropMask::FreeAll);
-        //~ // now get track state proxy back
-        //~ TrackState trackStateProxy  =
-            //~ result.fittedStates.getTrackState(tempTrackTip);
-		
-            //~ // For the last measurement state, smoothed is filtered
-		  //~ trackStateProxy.freePredicted() = st.freePredicted();
-		  //~ trackStateProxy.freePredictedCovariance() =
-			  //~ st.freePredictedCovariance();
-
-			//~ // Assign the source link to the detached track state                  	
-			//~ using Source = source_link_t;
-			//~ if constexpr (!std::is_same<Source, MinimalSourceLink>::value)
-			//~ {
-				//~ Source sl(st.uncalibrated().referenceObject(), {}, 3, st.freeFiltered(), *st.freeFilteredCovariance());
-				//~ trackStateProxy.uncalibrated() = sl;
-			//~ }
-			//~ auto updateRes = m_updater(state.geoContext, trackStateProxy, backward);
-			
-		  //~ st.freeSmoothed() = trackStateProxy.freeFiltered();
-		  //~ st.freeSmoothedCovariance() =
-			  //~ trackStateProxy.freeFilteredCovariance();      
-//~ }
-//~ else
-//~ {     
-/// Artificial bound measurements                   
-            st.boundSmoothed() = st.boundFiltered();
-            st.boundSmoothedCovariance() = st.boundFilteredCovariance();
-/// END Artificial bound measurements
-/**
-            st.freeSmoothed() = st.freeFiltered();
-            st.freeSmoothedCovariance() = st.freeFilteredCovariance();
-*/
-//~ }            
+            if(artificialBoundMeasurements)
+            {
+				st.boundSmoothed() = st.boundFiltered();
+				st.boundSmoothedCovariance() = st.boundFilteredCovariance();
+			} else {
+				st.freeSmoothed() = st.freeFiltered();
+				st.freeSmoothedCovariance() = st.freeFilteredCovariance();
+			}
             result.passedAgainObject.push_back(startVolume);
             
               updateFreeMeasurementCandidates(state, stepper, result);
@@ -887,82 +835,88 @@ std::cout << "Filter bound" << std::endl;
     Result<void> filter(State& state, const KalmanStepper& stepper, result_type& result) const {
 	  const source_link_t& sourceLink = *result.currentFreeMeasurements[0].sourceLink;
 std::cout << "Filter free" << std::endl;
-/// Artificial bound measurements
-auto [curvParams, jacobian, pathLength] = stepper.curvilinearState(state.stepping);
-
-// Build the TS proxy
-using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
-TrackState trackStateProxy = std::visit([&](const auto& jac) -> TrackState {
-TrackStatePropMask mask = std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value ? TrackStatePropMask::BoundAll : TrackStatePropMask::ToBoundAll;
-
-result.trackTip = result.fittedStates.addTrackState(mask, result.trackTip);
-auto trackState =
-	result.fittedStates.getTrackState(result.trackTip);
-if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value)
+if(artificialBoundMeasurements)
 {
-	trackState.jacobianBoundToBound() = jac;
-}
-if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, FreeToBoundMatrix>::value)
-{
-	trackState.jacobianFreeToBound() = jac;
-}
-return trackState;}, jacobian);
-// Fill the proxy
-trackStateProxy.uncalibrated() = sourceLink;
-trackStateProxy.boundPredicted() = curvParams.parameters();
-trackStateProxy.boundPredictedCovariance() = *curvParams.covariance();
-trackStateProxy.pathLength() = pathLength;
+	auto [curvParams, jacobian, pathLength] = stepper.curvilinearState(state.stepping);
 
-// Build & set the measurement
-Vector3D globalMeasPos = std::visit([](const auto& meas) -> const Vector3D { return meas.parameters().template head<3>(); },
-                    *sourceLink);
-BoundVector localMeasParams = detail::coordinate_transformation::global2parameters(state.geoContext, globalMeasPos, Vector3D(), state.stepping.q, 0, curvParams.referenceSurface());
-ActsSymMatrixD<2> cov;
-cov << 750. * Acts::UnitConstants::um * 750. * Acts::UnitConstants::um, 0, 0, 175. * Acts::UnitConstants::um * 175. * Acts::UnitConstants::um;
-Measurement<source_link_t, BoundParametersIndices, eBoundLoc0, eBoundLoc1> locMeas
-		(curvParams.referenceSurface().getSharedPtr(), sourceLink, cov, localMeasParams.x(), localMeasParams.y());
-trackStateProxy.setCalibrated(locMeas);
+	// Build the TS proxy
+	using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
+	TrackState trackStateProxy = std::visit([&](const auto& jac) -> TrackState {
+	TrackStatePropMask mask = std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value ? TrackStatePropMask::BoundAll : TrackStatePropMask::ToBoundAll;
 
-// Get and set the type flags
-auto& typeFlags = trackStateProxy.typeFlags();
-typeFlags.set(TrackStateFlag::MaterialFlag);
-typeFlags.set(TrackStateFlag::ParameterFlag);
+	result.trackTip = result.fittedStates.addTrackState(mask, result.trackTip);
+	auto trackState =
+		result.fittedStates.getTrackState(result.trackTip);
+	if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value)
+	{
+		trackState.jacobianBoundToBound() = jac;
+	}
+	if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, FreeToBoundMatrix>::value)
+	{
+		trackState.jacobianFreeToBound() = jac;
+	}
+	return trackState;}, jacobian);
+	// Fill the proxy
+	trackStateProxy.uncalibrated() = sourceLink;
+	trackStateProxy.boundPredicted() = curvParams.parameters();
+	trackStateProxy.boundPredictedCovariance() = *curvParams.covariance();
+	trackStateProxy.pathLength() = pathLength;
 
-// If the update is successful, set covariance and
-auto updateRes = m_updater(state.geoContext, trackStateProxy, forward, true);
+	// Build & set the measurement
+	Vector3D globalMeasPos = std::visit([](const auto& meas) -> const Vector3D { return meas.parameters().template head<3>(); },
+						*sourceLink);
+	BoundVector localMeasParams = detail::coordinate_transformation::global2parameters(state.geoContext, globalMeasPos, Vector3D(), state.stepping.q, 0, curvParams.referenceSurface());
+	ActsSymMatrixD<2> cov;
+	cov << 750. * Acts::UnitConstants::um * 750. * Acts::UnitConstants::um, 0, 0, 175. * Acts::UnitConstants::um * 175. * Acts::UnitConstants::um;
+	Measurement<source_link_t, BoundParametersIndices, eBoundLoc0, eBoundLoc1> locMeas
+			(curvParams.referenceSurface().getSharedPtr(), sourceLink, cov, localMeasParams.x(), localMeasParams.y());
+	trackStateProxy.setCalibrated(locMeas);
+	if constexpr (!std::is_same<source_link_t, MinimalSourceLink>::value)
+	{
+	    if(dynamic_cast<const Volume*>(&sourceLink.referenceObject()) != nullptr)
+			trackStateProxy.setReferenceObject(dynamic_cast<const Volume*>(&sourceLink.referenceObject())->getSharedPtr());
+		else
+			std::cout << "Source link does not refer to free measurement" << std::endl;
+	}
+	
+	// Get and set the type flags
+	auto& typeFlags = trackStateProxy.typeFlags();
+	typeFlags.set(TrackStateFlag::MaterialFlag);
+	typeFlags.set(TrackStateFlag::ParameterFlag);
 
-if (!updateRes.ok()) {
-  ACTS_ERROR("Update step failed: " << updateRes.error());
-  return updateRes.error();
+	// If the update is successful, set covariance and
+	auto updateRes = m_updater(state.geoContext, trackStateProxy, forward, true);
+
+	if (!updateRes.ok()) {
+	  ACTS_ERROR("Update step failed: " << updateRes.error());
+	  return updateRes.error();
+	} else {
+	  if (not m_outlierFinder(trackStateProxy)) {
+		// Set the measurement type flag
+		typeFlags.set(TrackStateFlag::MeasurementFlag);
+		// Update the stepping state with filtered parameters
+		ACTS_VERBOSE(
+			"Filtering step successful, updated parameters are : \n"
+			<< trackStateProxy.boundFiltered().transpose());
+		// update stepping state using filtered parameters after kalman
+		// update We need to (re-)construct a BoundParameters instance
+		// here, which is a bit awkward.
+			  stepper.update(state.stepping,
+							 MultiTrajectoryHelpers::freeFiltered(
+								 state.options.geoContext, trackStateProxy),
+							 BoundSymMatrix(trackStateProxy.boundFilteredCovariance()));
+		// We count the state with measurement
+		++result.measurementStates;
+	  } else {
+		ACTS_VERBOSE(
+			"Filtering step successful. But measurement is deterimined "
+			"to "
+			"be an outlier. Stepping state is not updated.")
+		// Set the outlier type flag
+		typeFlags.set(TrackStateFlag::OutlierFlag);
+	  }
+	}
 } else {
-  if (not m_outlierFinder(trackStateProxy)) {
-	// Set the measurement type flag
-	typeFlags.set(TrackStateFlag::MeasurementFlag);
-	// Update the stepping state with filtered parameters
-	ACTS_VERBOSE(
-		"Filtering step successful, updated parameters are : \n"
-		<< trackStateProxy.boundFiltered().transpose());
-	// update stepping state using filtered parameters after kalman
-	// update We need to (re-)construct a BoundParameters instance
-	// here, which is a bit awkward.
-          stepper.update(state.stepping,
-                         MultiTrajectoryHelpers::freeFiltered(
-                             state.options.geoContext, trackStateProxy),
-                         BoundSymMatrix(trackStateProxy.boundFilteredCovariance()));
-	// We count the state with measurement
-	++result.measurementStates;
-  } else {
-	ACTS_VERBOSE(
-		"Filtering step successful. But measurement is deterimined "
-		"to "
-		"be an outlier. Stepping state is not updated.")
-	// Set the outlier type flag
-	typeFlags.set(TrackStateFlag::OutlierFlag);
-  }
-}
-/// End of artificial bound measurements
-
-/**
 		auto [freeParams, jacobian, pathLength] = stepper.freeState(state.stepping);
 
 		using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
@@ -1040,7 +994,7 @@ if (!updateRes.ok()) {
             typeFlags.set(TrackStateFlag::OutlierFlag);
           }
         }
-*/
+}
         // We count the processed state
         ++result.processedStates;
       return Result<void>::success();
@@ -1220,104 +1174,103 @@ bool entryFound = false;
                                 result_type& result) const {
 	const source_link_t& sourceLink = *result.currentFreeMeasurements[0].sourceLink;
 std::cout << "Backward free" << std::endl;
-/// Artificial bound measurements
-auto [curvParams, jacobian, pathLength] = stepper.curvilinearState(state.stepping);
-
-// Build the TS proxy
-using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
-TrackState trackStateProxy = std::visit([&](const auto& jac) -> TrackState {
-TrackStatePropMask mask = std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value ? TrackStatePropMask::BoundAll : TrackStatePropMask::ToBoundAll;
-
-result.trackTip = result.fittedStates.addTrackState(mask, result.trackTip);
-auto trackState =
-	result.fittedStates.getTrackState(result.trackTip);
-if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value)
+if(artificialBoundMeasurements)
 {
-	trackState.jacobianBoundToBound() = jac;
-}
-if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, FreeToBoundMatrix>::value)
-{
-	trackState.jacobianFreeToBound() = jac;
-}
-return trackState;}, jacobian);
-// Fill the proxy
-bool entryFound = false;
-// Fill the track state
-result.fittedStates.applyBackwards(
-  result.trackTip, [&](auto trackState) {
-	if (trackState.uncalibrated() == sourceLink) {
-	  trackStateProxy.boundPredicted() = trackState.boundFiltered();
-	  trackStateProxy.boundPredictedCovariance() =
-		  trackState.boundFilteredCovariance();
+	auto [curvParams, jacobian, pathLength] = stepper.curvilinearState(state.stepping);
 
-		// Assign the source link to the detached track state                  	
-		using Source = source_link_t;
-		if constexpr (!std::is_same<Source, MinimalSourceLink>::value)
-		{
-			Source sl(curvParams.referenceSurface(), {}, 2, curvParams.parameters(), *curvParams.covariance());
-			trackStateProxy.uncalibrated() = sl;
-		}
-   entryFound = true;
-	  return false;
+	// Build the TS proxy
+	using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
+	TrackState trackStateProxy = std::visit([&](const auto& jac) -> TrackState {
+	TrackStatePropMask mask = std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value ? TrackStatePropMask::BoundAll : TrackStatePropMask::ToBoundAll;
+
+	result.trackTip = result.fittedStates.addTrackState(mask, result.trackTip);
+	auto trackState =
+		result.fittedStates.getTrackState(result.trackTip);
+	if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value)
+	{
+		trackState.jacobianBoundToBound() = jac;
 	}
-	return true;
-  });
-if(!entryFound)
- {
-	 std::cout << "no measurement found" << std::endl;
-	return Result<void>::success(); 
-}             
-trackStateProxy.pathLength() = pathLength;
-
-// Build & set the measurement
-BoundVector localMeasParams = curvParams.parameters();
-ActsSymMatrixD<2> cov = (*curvParams.covariance()).template block<2, 2>(0,0);
-//~ cov << 750. * Acts::UnitConstants::um * 750. * Acts::UnitConstants::um, 0, 0, 175. * Acts::UnitConstants::um * 175. * Acts::UnitConstants::um;
-Measurement<source_link_t, BoundParametersIndices, eBoundLoc0, eBoundLoc1> locMeas
-		(curvParams.referenceSurface().getSharedPtr(), sourceLink, cov, localMeasParams.x(), localMeasParams.y());
-trackStateProxy.setCalibrated(locMeas);
-
-// Get and set the type flags
-auto& typeFlags = trackStateProxy.typeFlags();
-typeFlags.set(TrackStateFlag::MaterialFlag);
-typeFlags.set(TrackStateFlag::ParameterFlag);
-
-// If the update is successful, set covariance and
-auto updateRes = m_updater(state.geoContext, trackStateProxy, backward, true);
-
-if (!updateRes.ok()) {
-  ACTS_ERROR("Backward update step failed: " << updateRes.error());
-  return updateRes.error();
-} else {
-  // Update the stepping state with filtered parameters
-  ACTS_VERBOSE(
-	  "Backward Filtering step successful, updated parameters are : "
-	  "\n"
-	  << trackStateProxy.freeFiltered().transpose());
-
-  // Fill the smoothed parameter for the existing track state
-  result.fittedStates.applyBackwards(
+	if constexpr (std::is_same<typename std::decay<decltype(jac)>::type, FreeToBoundMatrix>::value)
+	{
+		trackState.jacobianFreeToBound() = jac;
+	}
+	return trackState;}, jacobian);
+	// Fill the proxy
+	bool entryFound = false;
+	// Fill the track state
+	result.fittedStates.applyBackwards(
 	  result.trackTip, [&](auto trackState) {
-		auto fReferenceObject = &trackState.referenceObject();
 		if (trackState.uncalibrated() == sourceLink) {
-		  result.passedAgainObject.push_back(fReferenceObject);
-		  trackState.boundSmoothed() = trackStateProxy.boundFiltered();
-		  trackState.boundSmoothedCovariance() =
-			  trackStateProxy.boundFilteredCovariance();
+		  trackStateProxy.boundPredicted() = trackState.boundFiltered();
+		  trackStateProxy.boundPredictedCovariance() =
+			  trackState.boundFilteredCovariance();
+
+			// Assign the source link to the detached track state                  	
+			using Source = source_link_t;
+			if constexpr (!std::is_same<Source, MinimalSourceLink>::value)
+			{
+				Source sl(curvParams.referenceSurface(), {}, 2, curvParams.parameters(), *curvParams.covariance());
+				trackStateProxy.uncalibrated() = sl;
+			}
+	   entryFound = true;
 		  return false;
 		}
 		return true;
 	  });
+	if(!entryFound)
+	 {
+		 std::cout << "no measurement found" << std::endl;
+		return Result<void>::success(); 
+	}             
+	trackStateProxy.pathLength() = pathLength;
 
-  // update stepping state using filtered parameters after kalman
-  // update
-  stepper.update(state.stepping,
-				 MultiTrajectoryHelpers::freeFiltered(
-					 state.options.geoContext, trackStateProxy),
-				 BoundSymMatrix(trackStateProxy.boundFilteredCovariance()));
-}
-/// END Artificial bound measurement
-/**
+	// Build & set the measurement
+	BoundVector localMeasParams = curvParams.parameters();
+	ActsSymMatrixD<2> cov = (*curvParams.covariance()).template block<2, 2>(0,0);
+	Measurement<source_link_t, BoundParametersIndices, eBoundLoc0, eBoundLoc1> locMeas
+			(curvParams.referenceSurface().getSharedPtr(), sourceLink, cov, localMeasParams.x(), localMeasParams.y());
+	trackStateProxy.setCalibrated(locMeas);
+
+	// Get and set the type flags
+	auto& typeFlags = trackStateProxy.typeFlags();
+	typeFlags.set(TrackStateFlag::MaterialFlag);
+	typeFlags.set(TrackStateFlag::ParameterFlag);
+
+	// If the update is successful, set covariance and
+	auto updateRes = m_updater(state.geoContext, trackStateProxy, backward, true);
+
+	if (!updateRes.ok()) {
+	  ACTS_ERROR("Backward update step failed: " << updateRes.error());
+	  return updateRes.error();
+	} else {
+	  // Update the stepping state with filtered parameters
+	  ACTS_VERBOSE(
+		  "Backward Filtering step successful, updated parameters are : "
+		  "\n"
+		  << trackStateProxy.freeFiltered().transpose());
+
+	  // Fill the smoothed parameter for the existing track state
+	  result.fittedStates.applyBackwards(
+		  result.trackTip, [&](auto trackState) {
+			auto fReferenceObject = &trackState.referenceObject();
+			if (trackState.uncalibrated() == sourceLink) {
+			  result.passedAgainObject.push_back(fReferenceObject);
+			  trackState.boundSmoothed() = trackStateProxy.boundFiltered();
+			  trackState.boundSmoothedCovariance() =
+				  trackStateProxy.boundFilteredCovariance();
+			  return false;
+			}
+			return true;
+		  });
+
+	  // update stepping state using filtered parameters after kalman
+	  // update
+	  stepper.update(state.stepping,
+					 MultiTrajectoryHelpers::freeFiltered(
+						 state.options.geoContext, trackStateProxy),
+					 BoundSymMatrix(trackStateProxy.boundFilteredCovariance()));
+	}
+} else {
 		auto [freeParams, jacobian, pathLength] = stepper.freeState(state.stepping);
 
 		using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
@@ -1410,7 +1363,7 @@ if(!entryFound)
                 trackStateProxy.freeFiltered(),
                 FreeSymMatrix(trackStateProxy.freeFilteredCovariance()));
         }
-*/
+}
       return Result<void>::success();
     }
 
@@ -1623,18 +1576,20 @@ if(!entryFound)
     auto position = stepper.position(state.stepping);
     auto direction = stepper.direction(state.stepping);
 
-auto positionMeasurement = candidate.position;
-//~ // Replace measurement by truth if truth wasn't reached yet
-if constexpr(!std::is_same<source_link_t, MinimalSourceLink>::value)
-{
-	if(!candidate.truthReached && (state.stepping.navDir == forward))
+	auto positionMeasurement = candidate.position;
+	if(artificialBoundMeasurements)
 	{
-		positionMeasurement = candidate.sourceLink->truthHit().position();
+		// Replace measurement by truth if truth wasn't reached yet
+		if constexpr(!std::is_same<source_link_t, MinimalSourceLink>::value)
+		{
+			if(!candidate.truthReached && (state.stepping.navDir == forward))
+			{
+				positionMeasurement = candidate.sourceLink->truthHit().position();
+			}
+		}
 	}
-}
 
 	// Build the plane
-	//~ auto plane = Plane(direction, candidate.position);
 	auto plane = Plane(direction, positionMeasurement);
   
 	// Store intersection distance and source link
@@ -1726,6 +1681,7 @@ private:
 		kalmanActor.multipleScattering = kfOptions.multipleScattering;
 		kalmanActor.energyLoss = kfOptions.energyLoss;
 		kalmanActor.backwardFiltering = kfOptions.backwardFiltering;
+		kalmanActor.artificialBoundMeasurements = kfOptions.artificialBoundMeasurements;
 
 		// Set config for outlier finder
 		kalmanActor.m_outlierFinder = kfOptions.outlierFinder;

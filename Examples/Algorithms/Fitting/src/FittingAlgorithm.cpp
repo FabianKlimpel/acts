@@ -98,6 +98,7 @@ FW::ProcessCode FW::FittingAlgorithm::execute(
         ctx.geoContext, ctx.magFieldContext, ctx.calibContext,
         Acts::VoidOutlierFinder(), &(*pSurface));
    kfOptions.backwardFiltering = true;
+   kfOptions.artificialBoundMeasurements = true;
 
     ACTS_DEBUG("Invoke fitter");
     auto result = m_cfg.fit(trackSourceLinks, initialParams, kfOptions, freeTrackSourceLinks);

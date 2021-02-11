@@ -92,6 +92,7 @@ class EffectiveSourceLink {
 			  dynamic_cast<const Acts::Volume*>(m_referenceObject)->getSharedPtr(), *this, mat,
 			  m_values[0], m_values[1], m_values[2], m_values[7]);
 	    } else if (m_dim == 3) {
+			/// Looks deprecated
 			//~ if(m_bound) {
 				//~ Acts::ActsSymMatrixD<3> mat;
 				//~ for(unsigned int row = 0; row < 5; row++)

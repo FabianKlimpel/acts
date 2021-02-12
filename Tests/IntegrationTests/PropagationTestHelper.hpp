@@ -81,7 +81,7 @@ template <typename end_parameters_t, typename Propagator_type,
           typename start_parameters_t>
 Vector3D constant_field_propagation(const Propagator_type& propagator,
                                     start_parameters_t start, double pT,
-                                    double phi, double theta, double Bz,
+                                    double phi, double theta, double Bz, double distance = 5_m,
                                     double disttol = 0.1 *
                                                      Acts::UnitConstants::um,
                                     bool debug = false) {
@@ -90,7 +90,7 @@ Vector3D constant_field_propagation(const Propagator_type& propagator,
 
   // setup propagation options
   PropagatorOptions<> options(tgContext, mfContext);
-  options.pathLimit = 5_m;
+  options.pathLimit = distance;
   options.maxStepSize = 1_cm;
   options.debug = debug;
 

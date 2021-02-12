@@ -1545,6 +1545,20 @@ Acts::Vector3D mc;// = mc1 + mc2;
 				sqrt(covariance(Acts::eFreeDir2, Acts::eFreeDir2)));
 			m_pull_eQOP_free_smt.push_back((parameters[Acts::eFreeQOverP] - m_t_charge / truthHit.momentum4Before().template head<3>().norm())/
 				sqrt(covariance(Acts::eFreeQOverP, Acts::eFreeQOverP)));
+		  } else if(state.hasBoundSmoothed())
+		  {
+			//~ if constexpr (std::is_same<EffectiveSourceLink, decltype(state.uncalibrated())::value)
+			//~ {
+				auto pos4 = truthHit.position4();
+				auto mom4 = truthHit.momentum4Before();
+				
+				m_px_smt.push_back(mom4.x());
+				m_py_smt.push_back(mom4.y());
+				m_pz_smt.push_back(mom4.z());
+				m_x_smtf.push_back(pos4.x());
+				m_y_smtf.push_back(pos4.y());
+				m_z_smtf.push_back(pos4.z());
+			//~ }			
 		  } else {
 			// push default values if no smoothed parameter
 			m_ePos0_smt.push_back(-99.);
@@ -1589,6 +1603,14 @@ Acts::Vector3D mc;// = mc1 + mc2;
 			m_eta_smt.push_back(-99.);
 		  }
 
+			/// MODIFIED for artificial
+		  if(!predicted && state.hasFreePredicted())
+			predicted = true;
+		  if(!filtered && state.hasFreeFiltered())
+			filtered = true;
+		  if(!smoothed && state.hasFreeSmoothed())
+			smoothed = true;
+		
 		  m_prt.push_back(predicted);
 		  m_flt.push_back(filtered);
 		  m_smt.push_back(smoothed);

@@ -43,9 +43,9 @@
 
 #include <TH1F.h>
 #include <TFile.h>
+#include <TGraph.h>
 
-static TFile tf("stepLengths.root", "RECREATE");
-static TH1F* th1f = new TH1F("", "", 100, -10, 10);
+static int counter = 0;
 
 namespace Acts {
 
@@ -170,6 +170,7 @@ struct KalmanFitterResult {
   };
   std::vector<FreeMeasurementCandidate> currentFreeMeasurements;
 
+  std::vector<std::pair<float, float>> pathLengths;
 };
 
 /// @brief Kalman fitter implementation of Acts as a plugin
@@ -327,12 +328,14 @@ class KalmanFitter {
 							{
 std::cout << "PathToMeasurement: " << state.stepping.pathAccumulated << std::endl;
 							  filter(state, stepper, result);
-th1f->Fill(state.stepping.pathAccumulated - result.currentFreeMeasurements[0].pathLengthToTruth);
-std::cout << "PathDiff: " << state.stepping.pathAccumulated << " -> " 
-	<< state.stepping.pathAccumulated - result.currentFreeMeasurements[0].pathLengthToTruth << std::endl;
+//~ std::cout << "Returned from filter " << std::endl; 
+							  result.pathLengths.back().second = state.stepping.pathAccumulated;
+//~ std::cout << "Push back" << std::endl;							  
 							  result.currentFreeMeasurements.erase(result.currentFreeMeasurements.begin());
+//~ std::cout << "Erase" << std::endl;							  
 	                        } else {
-							  result.currentFreeMeasurements[0].pathLengthToTruth = state.stepping.pathAccumulated;
+							  //~ result.currentFreeMeasurements[0].pathLengthToTruth = state.stepping.pathAccumulated;
+							  result.pathLengths.push_back(std::make_pair(state.stepping.pathAccumulated, -1000.));
 							  result.currentFreeMeasurements[0].truthReached = true;
 std::cout << "PathToTruth: " << state.stepping.pathAccumulated << std::endl;
 							}
@@ -351,11 +354,14 @@ std::cout << "PathToTruth: " << state.stepping.pathAccumulated << std::endl;
 				  }
 				  if(!result.currentFreeMeasurements.empty())
 				  {
+//~ std::cout << "CurrentFreeMeasurements not empty()" << std::endl;					  
 					  calculateDistanceToMeasurement(state, stepper, result.currentFreeMeasurements[0]);
+//~ std::cout << "Distance" << std::endl;
 					  stepper.setStepSize(state.stepping, result.currentFreeMeasurements[0].distance * state.stepping.navDir, ConstrainedStep::user);
 				  }
 				  else
 				  {
+//~ std::cout << "CurrentFreeMeasurements empty()" << std::endl;					  
 					  state.stepping.stepSize.release(ConstrainedStep::user);
 				  }
 
@@ -411,9 +417,9 @@ std::cout << "PathToTruth: " << state.stepping.pathAccumulated << std::endl;
             // Reverse navigation direction and reset navigation and stepping
             // state to last measurement
             ACTS_VERBOSE("Reverse navigation direction.");
-std::cout << "Reverse before" << std::endl;
+//~ std::cout << "Reverse before" << std::endl;
             reverse(state, stepper, result);
-std::cout << "Reverse after" << std::endl;
+//~ std::cout << "Reverse after" << std::endl;
           } else if (not result.smoothed) {
             // --> Search the starting state to run the smoothing
             // --> Call the smoothing
@@ -507,7 +513,7 @@ std::cout << "Reverse after" << std::endl;
         if (st.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag)) {
           const Surface* startSurface =
               dynamic_cast<const Surface*>(&st.referenceObject());
-std::cout << "Surface?: " << startSurface << std::endl;
+//~ std::cout << "Surface?: " << startSurface << std::endl;
           if (startSurface != nullptr) {
             // Set the navigation state
             state.navigation.startSurface = startSurface;
@@ -522,12 +528,11 @@ std::cout << "Surface?: " << startSurface << std::endl;
             state.navigation.targetSurface = targetSurface;
             state.navigation.currentSurface = state.navigation.startSurface;
             state.navigation.currentVolume = state.navigation.startVolume;
-//~ std::cout << "Surface navigation" << std::endl;
+
             // Update the stepping state
             stepper.resetState(state.stepping, st.boundFiltered(),
                                BoundMatrix(st.boundFilteredCovariance()), *startSurface, backward,
                                state.options.maxStepSize);
-//~ std::cout << "Stepper state reset" << std::endl;
            
             st.boundSmoothed() = st.boundFiltered();
             st.boundSmoothedCovariance() = st.boundFilteredCovariance();
@@ -542,7 +547,7 @@ std::cout << "Reverse uncertainty: " << sqrt(indx) << std::endl;
             materialInteractor(state.navigation.currentSurface, state, stepper);
           } else {
 			const Volume* startVolume = dynamic_cast<const Volume*>(&st.referenceObject());
-std::cout << "StartVolume? " << startVolume << std::endl;			
+//~ std::cout << "StartVolume? " << startVolume << std::endl;			
 			// Set the navigation state
             state.navigation.startVolume = (TrackingVolume*) startVolume;
             state.navigation.startSurface = nullptr;
@@ -557,9 +562,9 @@ std::cout << "StartVolume? " << startVolume << std::endl;
             // Update the stepping state
             if(artificialBoundMeasurements)
             {
-			stepper.resetState(state.stepping, MultiTrajectoryHelpers::freeFiltered(
-                             state.options.geoContext, st),
-				   BoundMatrix(st.boundFilteredCovariance()), backward,
+				auto artificialSurface = Surface::makeShared<PlaneSurface>(stepper.position(state.stepping), stepper.direction(state.stepping)); 
+				stepper.resetState(state.stepping, st.boundFiltered(),
+				   BoundMatrix(st.boundFilteredCovariance()), *artificialSurface, backward,
 				   state.options.maxStepSize);
 			} else {
 				stepper.resetState(state.stepping, st.freeFiltered(),
@@ -577,7 +582,7 @@ std::cout << "StartVolume? " << startVolume << std::endl;
 				st.freeSmoothedCovariance() = st.freeFilteredCovariance();
 			}
             result.passedAgainObject.push_back(startVolume);
-            
+//~ std::cout << "Step4" << std::endl;            
               updateFreeMeasurementCandidates(state, stepper, result);
 			  if(!result.currentFreeMeasurements.empty())
 			  {
@@ -598,6 +603,7 @@ std::cout << "StartVolume? " << startVolume << std::endl;
 					  stepper.setStepSize(state.stepping, result.currentFreeMeasurements[0].distance * state.stepping.navDir, ConstrainedStep::user);
 				  }
 			  }
+//~ std::cout << "Step5" << std::endl;			  
 		  }
 		  return false;  // abort execution
         }
@@ -616,7 +622,7 @@ std::cout << "StartVolume? " << startVolume << std::endl;
       // Try to find the surface in the measurement surfaces
       auto sourcelink_it = boundInputMeasurements.find(surface);
       if (sourcelink_it != boundInputMeasurements.end()) {
-std::cout << "Filter bound" << std::endl;
+//~ std::cout << "Filter bound" << std::endl;
         // Screen output message
         ACTS_VERBOSE("Measurement surface " << surface->geoID()
                                             << " detected.");
@@ -834,7 +840,7 @@ std::cout << "Filter bound" << std::endl;
     /// @param result The mutable result state object
     Result<void> filter(State& state, const KalmanStepper& stepper, result_type& result) const {
 	  const source_link_t& sourceLink = *result.currentFreeMeasurements[0].sourceLink;
-std::cout << "Filter free" << std::endl;
+//~ std::cout << "Filter free" << std::endl;
 if(artificialBoundMeasurements)
 {
 	auto [curvParams, jacobian, pathLength] = stepper.curvilinearState(state.stepping);
@@ -842,7 +848,7 @@ if(artificialBoundMeasurements)
 	// Build the TS proxy
 	using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
 	TrackState trackStateProxy = std::visit([&](const auto& jac) -> TrackState {
-	TrackStatePropMask mask = std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value ? TrackStatePropMask::BoundAll : TrackStatePropMask::ToBoundAll;
+	TrackStatePropMask mask = std::is_same<typename std::decay<decltype(jac)>::type, BoundMatrix>::value ? TrackStatePropMask::Artificial : TrackStatePropMask::ToArtificial;
 
 	result.trackTip = result.fittedStates.addTrackState(mask, result.trackTip);
 	auto trackState =
@@ -861,6 +867,9 @@ if(artificialBoundMeasurements)
 	trackStateProxy.boundPredicted() = curvParams.parameters();
 	trackStateProxy.boundPredictedCovariance() = *curvParams.covariance();
 	trackStateProxy.pathLength() = pathLength;
+	trackStateProxy.freePredicted() = 
+		detail::coordinate_transformation::boundParameters2freeParameters(state.geoContext, trackStateProxy.boundPredicted(), curvParams.referenceSurface());
+	trackStateProxy.freePredictedCovariance() = FreeSymMatrix(FreeSymMatrix::Identity());
 
 	// Build & set the measurement
 	Vector3D globalMeasPos = std::visit([](const auto& meas) -> const Vector3D { return meas.parameters().template head<3>(); },
@@ -871,22 +880,20 @@ if(artificialBoundMeasurements)
 	Measurement<source_link_t, BoundParametersIndices, eBoundLoc0, eBoundLoc1> locMeas
 			(curvParams.referenceSurface().getSharedPtr(), sourceLink, cov, localMeasParams.x(), localMeasParams.y());
 	trackStateProxy.setCalibrated(locMeas);
-	if constexpr (!std::is_same<source_link_t, MinimalSourceLink>::value)
-	{
-	    if(dynamic_cast<const Volume*>(&sourceLink.referenceObject()) != nullptr)
-			trackStateProxy.setReferenceObject(dynamic_cast<const Volume*>(&sourceLink.referenceObject())->getSharedPtr());
-		else
-			std::cout << "Source link does not refer to free measurement" << std::endl;
-	}
 	
 	// Get and set the type flags
 	auto& typeFlags = trackStateProxy.typeFlags();
 	typeFlags.set(TrackStateFlag::MaterialFlag);
 	typeFlags.set(TrackStateFlag::ParameterFlag);
-
+std::cout << "Distance before filter: " << trackStateProxy.boundPredicted().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
+	<< (localMeasParams.head(2) - trackStateProxy.boundPredicted().head(2)).norm() << std::endl;
 	// If the update is successful, set covariance and
 	auto updateRes = m_updater(state.geoContext, trackStateProxy, forward, true);
-
+std::cout << "Distance after filter: " << trackStateProxy.boundFiltered().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
+	<< (localMeasParams.head(2) - trackStateProxy.boundFiltered().head(2)).norm() << std::endl;
+	trackStateProxy.freeFiltered() = 
+			detail::coordinate_transformation::boundParameters2freeParameters(state.geoContext, trackStateProxy.boundFiltered(), curvParams.referenceSurface());
+	trackStateProxy.freeFilteredCovariance() = FreeSymMatrix(FreeSymMatrix::Identity());
 	if (!updateRes.ok()) {
 	  ACTS_ERROR("Update step failed: " << updateRes.error());
 	  return updateRes.error();
@@ -916,6 +923,20 @@ if(artificialBoundMeasurements)
 		typeFlags.set(TrackStateFlag::OutlierFlag);
 	  }
 	}
+	
+	// Replace the reference object
+	if constexpr (!std::is_same<source_link_t, MinimalSourceLink>::value)
+	{
+	    if(dynamic_cast<const Volume*>(&sourceLink.referenceObject()) != nullptr)
+	    {
+//~ std::cout << "This is no nullptr " <<  dynamic_cast<const Volume*>(&sourceLink.referenceObject()) << std::endl;
+			trackStateProxy.setReferenceObject(dynamic_cast<const Volume*>(&sourceLink.referenceObject())->getSharedPtr());
+//~ std::cout << "Open the gate!" << std::endl;
+		}
+		else
+			std::cout << "Source link does not refer to free measurement" << std::endl;
+	}
+	
 } else {
 		auto [freeParams, jacobian, pathLength] = stepper.freeState(state.stepping);
 
@@ -1013,7 +1034,7 @@ if(artificialBoundMeasurements)
       // Try to find the surface in the measurement surfaces
       auto sourcelink_it = boundInputMeasurements.find(surface);
       if (sourcelink_it != boundInputMeasurements.end()) {
-std::cout << "Backward bound" << std::endl;		  
+//~ std::cout << "Backward bound" << std::endl;		  
         // Screen output message
         ACTS_VERBOSE("Measurement surface "
                      << surface->geoID()
@@ -1173,10 +1194,26 @@ bool entryFound = false;
                                 const KalmanStepper& stepper,
                                 result_type& result) const {
 	const source_link_t& sourceLink = *result.currentFreeMeasurements[0].sourceLink;
-std::cout << "Backward free" << std::endl;
+//~ std::cout << "Backward free" << std::endl;
 if(artificialBoundMeasurements)
 {
-	auto [curvParams, jacobian, pathLength] = stepper.curvilinearState(state.stepping);
+	// Build the surface
+	std::shared_ptr<const Surface> surface;
+	result.fittedStates.applyBackwards(
+	  result.trackTip, [&](auto trackState) {
+		if (trackState.uncalibrated() == sourceLink) {
+		  auto pos = trackState.freeFiltered();
+		  surface = Surface::makeShared<PlaneSurface>(pos.template head<3>(), pos.template segment<3>(eFreeDir0));
+		  return false;
+		}
+		return true;
+	  });
+    if(!surface) // Skip this update as it wasn't filtered
+	{
+		return Result<void>::success(); 
+	}   
+		  
+	auto [curvParams, jacobian, pathLength] = stepper.boundState(state.stepping, *surface);
 
 	// Build the TS proxy
 	using TrackState = typename MultiTrajectory<source_link_t>::TrackStateProxy;
@@ -1209,7 +1246,7 @@ if(artificialBoundMeasurements)
 			using Source = source_link_t;
 			if constexpr (!std::is_same<Source, MinimalSourceLink>::value)
 			{
-				Source sl(curvParams.referenceSurface(), {}, 2, curvParams.parameters(), *curvParams.covariance());
+				Source sl(*surface, {}, 2, curvParams.parameters(), *curvParams.covariance());
 				trackStateProxy.uncalibrated() = sl;
 			}
 	   entryFound = true;
@@ -1228,17 +1265,20 @@ if(artificialBoundMeasurements)
 	BoundVector localMeasParams = curvParams.parameters();
 	ActsSymMatrixD<2> cov = (*curvParams.covariance()).template block<2, 2>(0,0);
 	Measurement<source_link_t, BoundParametersIndices, eBoundLoc0, eBoundLoc1> locMeas
-			(curvParams.referenceSurface().getSharedPtr(), sourceLink, cov, localMeasParams.x(), localMeasParams.y());
+			(surface, sourceLink, cov, localMeasParams.x(), localMeasParams.y());
 	trackStateProxy.setCalibrated(locMeas);
 
 	// Get and set the type flags
 	auto& typeFlags = trackStateProxy.typeFlags();
 	typeFlags.set(TrackStateFlag::MaterialFlag);
 	typeFlags.set(TrackStateFlag::ParameterFlag);
-
+std::cout << "Similarity: " << trackStateProxy.boundPredicted().transpose() << " | " << curvParams.parameters().transpose() << std::endl;
+std::cout << "Distance before reverse filter: " << trackStateProxy.boundPredicted().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
+	<< (localMeasParams.head(2) - trackStateProxy.boundPredicted().head(2)).norm() << std::endl;
 	// If the update is successful, set covariance and
 	auto updateRes = m_updater(state.geoContext, trackStateProxy, backward, true);
-
+std::cout << "Distance after reverse filter: " << trackStateProxy.boundFiltered().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
+	<< (localMeasParams.head(2) - trackStateProxy.boundFiltered().head(2)).norm() << std::endl;
 	if (!updateRes.ok()) {
 	  ACTS_ERROR("Backward update step failed: " << updateRes.error());
 	  return updateRes.error();
@@ -1258,6 +1298,9 @@ if(artificialBoundMeasurements)
 			  trackState.boundSmoothed() = trackStateProxy.boundFiltered();
 			  trackState.boundSmoothedCovariance() =
 				  trackStateProxy.boundFilteredCovariance();
+			  trackState.freeSmoothed() = 
+				detail::coordinate_transformation::boundParameters2freeParameters(state.geoContext, trackStateProxy.boundSmoothed(), curvParams.referenceSurface());
+			  trackState.freeSmoothedCovariance() = FreeSymMatrix(FreeSymMatrix::Identity());
 			  return false;
 			}
 			return true;
@@ -1627,8 +1670,16 @@ if(!entryFound)
     bool operator()(typename action_type::State& /*state*/, const KalmanStepper& /*stepper*/,
                     const typename action_type::result_type& result) const {
       if (!result.result.ok() or result.finished) {
+TFile tf("stepLengths.root", "UPDATE");
+TGraph* tg = new TGraph();
+std::cout << "Path length sizes: " << result.pathLengths.size() << std::endl;
+for(unsigned int i = 0; i < result.pathLengths.size(); i++)
+{
+	tg->SetPoint(i, result.pathLengths[i].first, result.pathLengths[i].second);
+}
 gDirectory->cd();
-gDirectory->WriteObject(th1f, "StepLengthDiffs");
+gDirectory->WriteObject(tg, ("StepLengths_" + std::to_string(counter)).c_str());
+counter++;
 tf.Write();
 tf.Close();
         return true;

@@ -138,31 +138,31 @@ struct Interactor {
     //~ if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
 		//~ return;
 		
-/// This one creates measurements in the TPC for all configurations		
-		if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
-		{
-			if(interactorEven)
-			{
-				const auto part =
-					Particle(particle)
-					// include passed material from the initial particle state
-					.setMaterialPassed(particle.pathInX0() + result.pathInX0, // TODO: Is the material tracked in dense environment?
-									   particle.pathInL0() + result.pathInL0)
-					.setPosition4(stepper.position(state.stepping),
-								  stepper.time(state.stepping))
-					.setDirection(stepper.direction(state.stepping))
-					.setAbsMomentum(stepper.momentum(state.stepping));
-				result.particle = part;	
-				result.hits.emplace_back(
-				  state.navigation.currentVolume->geoID(), part.particleId(),
-				  part.position4(), part.momentum4(), part.momentum4(), result.hits.size());
-				// TODO: Material doesn't mean sensitive; requires a selection as for the surfaces
-				interactorEven = false;
-			} else {
-				interactorEven = true;
-			}
-			return;
-		}
+/// This one creates measurements in the TPC for free and artificial configuration	
+		//~ if(state.navigation.currentVolume && state.navigation.currentVolume->volumeName().find("TPC") != std::string::npos)
+		//~ {
+			//~ if(interactorEven)
+			//~ {
+				//~ const auto part =
+					//~ Particle(particle)
+					//~ // include passed material from the initial particle state
+					//~ .setMaterialPassed(particle.pathInX0() + result.pathInX0, // TODO: Is the material tracked in dense environment?
+									   //~ particle.pathInL0() + result.pathInL0)
+					//~ .setPosition4(stepper.position(state.stepping),
+								  //~ stepper.time(state.stepping))
+					//~ .setDirection(stepper.direction(state.stepping))
+					//~ .setAbsMomentum(stepper.momentum(state.stepping));
+				//~ result.particle = part;	
+				//~ result.hits.emplace_back(
+				  //~ state.navigation.currentVolume->geoID(), part.particleId(),
+				  //~ part.position4(), part.momentum4(), part.momentum4(), result.hits.size());
+				//~ // TODO: Material doesn't mean sensitive; requires a selection as for the surfaces
+				//~ interactorEven = false;
+			//~ } else {
+				//~ interactorEven = true;
+			//~ }
+			//~ return;
+		//~ }
 		
     const Acts::Surface &surface = *state.navigation.currentSurface;
 

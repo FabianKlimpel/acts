@@ -340,11 +340,11 @@ std::cout << "PathToMeasurement: " << state.stepping.pathAccumulated << std::end
 std::cout << "PathToTruth: " << state.stepping.pathAccumulated << std::endl;
 							}
 						} else {
-							if(result.currentFreeMeasurements[0].truthReached)
-							{
+							//~ if(result.currentFreeMeasurements[0].truthReached)
+							//~ {
 							  filter(state, stepper, result);
 							  result.currentFreeMeasurements.erase(result.currentFreeMeasurements.begin());
-	                        }
+	                        //~ }
 						}
 				  } 
 				  else if (state.stepping.navDir == backward and
@@ -885,12 +885,12 @@ if(artificialBoundMeasurements)
 	auto& typeFlags = trackStateProxy.typeFlags();
 	typeFlags.set(TrackStateFlag::MaterialFlag);
 	typeFlags.set(TrackStateFlag::ParameterFlag);
-std::cout << "Distance before filter: " << trackStateProxy.boundPredicted().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
-	<< (localMeasParams.head(2) - trackStateProxy.boundPredicted().head(2)).norm() << std::endl;
+//~ std::cout << "Distance before filter: " << trackStateProxy.boundPredicted().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
+	//~ << (localMeasParams.head(2) - trackStateProxy.boundPredicted().head(2)).norm() << std::endl;
 	// If the update is successful, set covariance and
 	auto updateRes = m_updater(state.geoContext, trackStateProxy, forward, true);
-std::cout << "Distance after filter: " << trackStateProxy.boundFiltered().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
-	<< (localMeasParams.head(2) - trackStateProxy.boundFiltered().head(2)).norm() << std::endl;
+//~ std::cout << "Distance after filter: " << trackStateProxy.boundFiltered().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
+	//~ << (localMeasParams.head(2) - trackStateProxy.boundFiltered().head(2)).norm() << std::endl;
 	trackStateProxy.freeFiltered() = 
 			detail::coordinate_transformation::boundParameters2freeParameters(state.geoContext, trackStateProxy.boundFiltered(), curvParams.referenceSurface());
 	trackStateProxy.freeFilteredCovariance() = FreeSymMatrix(FreeSymMatrix::Identity());
@@ -1272,13 +1272,13 @@ if(artificialBoundMeasurements)
 	auto& typeFlags = trackStateProxy.typeFlags();
 	typeFlags.set(TrackStateFlag::MaterialFlag);
 	typeFlags.set(TrackStateFlag::ParameterFlag);
-std::cout << "Similarity: " << trackStateProxy.boundPredicted().transpose() << " | " << curvParams.parameters().transpose() << std::endl;
-std::cout << "Distance before reverse filter: " << trackStateProxy.boundPredicted().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
-	<< (localMeasParams.head(2) - trackStateProxy.boundPredicted().head(2)).norm() << std::endl;
+//~ std::cout << "Similarity: " << trackStateProxy.boundPredicted().transpose() << " | " << curvParams.parameters().transpose() << std::endl;
+//~ std::cout << "Distance before reverse filter: " << trackStateProxy.boundPredicted().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
+	//~ << (localMeasParams.head(2) - trackStateProxy.boundPredicted().head(2)).norm() << std::endl;
 	// If the update is successful, set covariance and
 	auto updateRes = m_updater(state.geoContext, trackStateProxy, backward, true);
-std::cout << "Distance after reverse filter: " << trackStateProxy.boundFiltered().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
-	<< (localMeasParams.head(2) - trackStateProxy.boundFiltered().head(2)).norm() << std::endl;
+//~ std::cout << "Distance after reverse filter: " << trackStateProxy.boundFiltered().head(2).transpose() << " | " << localMeasParams.head(2).transpose() << " | " 
+	//~ << (localMeasParams.head(2) - trackStateProxy.boundFiltered().head(2)).norm() << std::endl;
 	if (!updateRes.ok()) {
 	  ACTS_ERROR("Backward update step failed: " << updateRes.error());
 	  return updateRes.error();

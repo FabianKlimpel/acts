@@ -98,11 +98,11 @@ FW::ProcessCode FW::FittingAlgorithm::execute(
         ctx.geoContext, ctx.magFieldContext, ctx.calibContext,
         Acts::VoidOutlierFinder(), &(*pSurface));
    kfOptions.backwardFiltering = true;
-   kfOptions.artificialBoundMeasurements = true;
+   kfOptions.artificialBoundMeasurements = false; /// Artificial measurements
 
     ACTS_DEBUG("Invoke fitter");
-    auto result = m_cfg.fit(trackSourceLinks, initialParams, kfOptions, freeTrackSourceLinks);
-    //~ auto result = m_cfg.fit(trackSourceLinks, initialParams, kfOptions, {});
+    //~ auto result = m_cfg.fit(trackSourceLinks, initialParams, kfOptions, freeTrackSourceLinks);
+    auto result = m_cfg.fit(trackSourceLinks, initialParams, kfOptions, {}); /// Tracker only
 
     if (result.ok()) {
       // Get the fit output object

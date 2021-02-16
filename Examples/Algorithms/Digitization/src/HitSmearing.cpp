@@ -78,31 +78,31 @@ FW::ProcessCode FW::HitSmearing::execute(const AlgorithmContext& ctx) const {
     const auto is = m_surfaces.find(moduleGeoId);
     if (is == m_surfaces.end()) {
 /// FREE TPC
-		//~ const Acts::TrackingVolume* trVol = m_cfg.trackingGeometry->lowestTrackingVolume(ctx.geoContext, moduleHits.begin()->position()); // TODO: Association by geoId
-		//~ if(trVol != nullptr && trVol->volumeName().find("TPC") != std::string::npos)
-		//~ {
-			//~ const Acts::Volume* vol = static_cast<const Acts::Volume*>(trVol);
-			//~ for (const auto& hit : moduleHits) {
-			  //~ // smear truth to create local measurement
-			  //~ Acts::BoundVector glob = Acts::BoundVector::Zero();
-			  //~ glob[Acts::eFreePos0] = hit.position()[Acts::eFreePos0] + m_cfg.sigmaGlob0 * stdNormal(rng);
-			  //~ glob[Acts::eFreePos1] = hit.position()[Acts::eFreePos1] + m_cfg.sigmaGlob1 * stdNormal(rng);
-			  //~ glob[Acts::eFreePos2] = hit.position()[Acts::eFreePos2] + m_cfg.sigmaGlob2 * stdNormal(rng);
+		const Acts::TrackingVolume* trVol = m_cfg.trackingGeometry->lowestTrackingVolume(ctx.geoContext, moduleHits.begin()->position()); // TODO: Association by geoId
+		if(trVol != nullptr && trVol->volumeName().find("TPC") != std::string::npos)
+		{
+			const Acts::Volume* vol = static_cast<const Acts::Volume*>(trVol);
+			for (const auto& hit : moduleHits) {
+			  // smear truth to create local measurement
+			  Acts::BoundVector glob = Acts::BoundVector::Zero();
+			  glob[Acts::eFreePos0] = hit.position()[Acts::eFreePos0] + m_cfg.sigmaGlob0 * stdNormal(rng);
+			  glob[Acts::eFreePos1] = hit.position()[Acts::eFreePos1] + m_cfg.sigmaGlob1 * stdNormal(rng);
+			  glob[Acts::eFreePos2] = hit.position()[Acts::eFreePos2] + m_cfg.sigmaGlob2 * stdNormal(rng);
 
-			  //~ // create source link at the end of the container
-			  //~ auto it = sourceLinks.emplace_hint(sourceLinks.end(), *vol, hit, 3,
-												 //~ glob, covGlob);
-			  //~ // ensure hits and links share the same order to prevent ugly surprises
-			  //~ if (std::next(it) != sourceLinks.end()) {
-				//~ ACTS_FATAL("The hit ordering broke. Run for your life.");
-				//~ return ProcessCode::ABORT;
-			  //~ }
-			  //~ auto hitIndex = sourceLinks.index_of(it);
-			  //~ // push to the hitParticle map
-			  //~ hitParticlesMap.emplace_hint(
-				  //~ hitParticlesMap.end(), hitIndex, hit.particleId());
-			//~ }
-		//~ }
+			  // create source link at the end of the container
+			  auto it = sourceLinks.emplace_hint(sourceLinks.end(), *vol, hit, 3,
+												 glob, covGlob);
+			  // ensure hits and links share the same order to prevent ugly surprises
+			  if (std::next(it) != sourceLinks.end()) {
+				ACTS_FATAL("The hit ordering broke. Run for your life.");
+				return ProcessCode::ABORT;
+			  }
+			  auto hitIndex = sourceLinks.index_of(it);
+			  // push to the hitParticle map
+			  hitParticlesMap.emplace_hint(
+				  hitParticlesMap.end(), hitIndex, hit.particleId());
+			}
+		}
       continue;
     }
 
@@ -113,14 +113,14 @@ double deviation = 0.;
 covLoc(Acts::eLOC_0, Acts::eLOC_0) = m_cfg.sigmaLoc0 * m_cfg.sigmaLoc0;
 covLoc(Acts::eLOC_1, Acts::eLOC_1) = m_cfg.sigmaLoc1 * m_cfg.sigmaLoc1;
 /// BOUND TPC
-if(trVol != nullptr && trVol->volumeName().find("TPC") != std::string::npos)   
-{
-	covLoc(Acts::eLOC_0, Acts::eLOC_0) = m_cfg.sigmaGlob0 * m_cfg.sigmaGlob0;
-	covLoc(Acts::eLOC_1, Acts::eLOC_1) = m_cfg.sigmaGlob2 * m_cfg.sigmaGlob2;
-	err0 = m_cfg.sigmaGlob0;
-	err1 = m_cfg.sigmaGlob2;
-	deviation = 9.17 * stdNormal(rng); // Half thickness of a pad
-}
+//~ if(trVol != nullptr && trVol->volumeName().find("TPC") != std::string::npos)   
+//~ {
+	//~ covLoc(Acts::eLOC_0, Acts::eLOC_0) = m_cfg.sigmaGlob0 * m_cfg.sigmaGlob0;
+	//~ covLoc(Acts::eLOC_1, Acts::eLOC_1) = m_cfg.sigmaGlob2 * m_cfg.sigmaGlob2;
+	//~ err0 = m_cfg.sigmaGlob0;
+	//~ err1 = m_cfg.sigmaGlob2;
+	//~ deviation = 9.17 * 0.5 * stdNormal(rng); // Half thickness of a pad
+//~ }
 	
     // smear all truth hits for this module
     const Acts::Surface* surface = is->second;

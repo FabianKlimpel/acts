@@ -101,7 +101,7 @@ FW::ProcessCode FW::FittingAlgorithm::execute(
    kfOptions.artificialBoundMeasurements = false; /// Artificial measurements
 
     ACTS_DEBUG("Invoke fitter");
-    //~ auto result = m_cfg.fit(trackSourceLinks, initialParams, kfOptions, freeTrackSourceLinks);
+    //~ auto result = m_cfg.fit(trackSourceLinks, initialParams, kfOptions, freeTrackSourceLinks); /// Free / Artificial
     auto result = m_cfg.fit(trackSourceLinks, initialParams, kfOptions, {}); /// Tracker only
 
     if (result.ok()) {

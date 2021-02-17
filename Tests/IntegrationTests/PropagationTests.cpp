@@ -34,6 +34,10 @@
 
 #include "PropagationTestHelper.hpp"
 
+#include <random>
+#include <TGraph2D.h>
+#include <TFile.h>
+
 namespace bdata = boost::unit_test::data;
 namespace tt = boost::test_tools;
 using namespace Acts::UnitLiterals;

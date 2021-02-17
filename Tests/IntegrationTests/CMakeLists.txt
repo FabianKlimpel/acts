@@ -23,6 +23,7 @@ macro(add_integrationtest _name)
       ActsCore
       ActsTestsCommonHelpers
       Boost::unit_test_framework
+      ROOT::Core ROOT::Hist ROOT::Tree
       ${integrationtest_extra_libraries})
   # register as integration test executable
   set(_test "integrationtests-${_name}")

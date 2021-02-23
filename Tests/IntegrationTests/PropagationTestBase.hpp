@@ -44,7 +44,7 @@ unsigned int itest = 0;
 //~ auto threeRandom = (rand1 ^ rand2 ^ rand2);
 //~ }  // namespace ds
 
-
+/**
 // The constant field test
 /// test forward propagation in constant magnetic field
 BOOST_AUTO_TEST_CASE(constant_bfieldforward_propagation_) {
@@ -56,13 +56,8 @@ BOOST_AUTO_TEST_CASE(constant_bfieldforward_propagation_) {
   std::normal_distribution<double> dx(0., sqrt(50_mm));
   std::normal_distribution<double> dy(0., sqrt(50_mm));
   std::normal_distribution<double> dz(0., sqrt(100_mm));
-  //~ std::normal_distribution<double> dphi(0., sqrt(0.1));
-  //~ std::normal_distribution<double> dthe(0., sqrt(0.1));
-  //~ std::normal_distribution<double> dp(0., sqrt(1_e / 10_GeV));
  
   double pT = 10_GeV;
-  //~ double phi = dphi(gen);
-  //~ double theta = 0.5 * M_PI * dthe(gen);
   double phi = 0;
   double theta = 0.5 * M_PI;
   
@@ -95,16 +90,14 @@ for(unsigned int dist = 1; dist < 4; dist++)
     tgCS->SetPoint(i, startC.position().x(), startC.position().y(), startC.position().z());
   
   	Vector3D cc = constant_field_propagation<CurvilinearParameters>(
-		  epropagator, startC, pT, phi, theta, Bz, 2_m * dist);
+		  epropagator, startC, pT, phi, theta, Bz, 0.3_m * dist);
 	Vector3D cf = constant_field_propagation<FreeTrackParameters>(
-		  epropagator, startC, pT, phi, theta, Bz, 2_m * dist);
+		  epropagator, startC, pT, phi, theta, Bz, 0.3_m * dist);
 
 	tgCCE->SetPoint(i, cc.x(), cc.y(), cc.z());
 	tgCFE->SetPoint(i, cf.x(), cf.y(), cf.z());
   }
-  
-/// TODO: variable propagation length 
- 
+   
   for(unsigned int i = 0; i < 10000; i++)
   {
 	  // Start parameters
@@ -114,18 +107,15 @@ for(unsigned int dist = 1; dist < 4; dist++)
 
 	  Vector3D dir = mom.normalized();
 	  FreeVector pars;
-	  pars << x, y, z, time, dir.x(), dir.y(), dir.z(), q / mom.norm();
+	  pars << x, y, z, 0., dir.x(), dir.y(), dir.z(), q / mom.norm();
 	  FreeTrackParameters startF(std::nullopt, pars);
 
 	  tgFS->SetPoint(i, x, y, z);
 	  // constant field propagation eigen stepper
 	  Vector3D fc = constant_field_propagation<CurvilinearParameters>(
-		  epropagator, startF, pT, phi, theta, Bz, 2_m * dist);
+		  epropagator, startF, pT, phi, theta, Bz, 0.3_m * dist);
 	  Vector3D ff = constant_field_propagation<FreeTrackParameters>(
-		  epropagator, startF, pT, phi, theta, Bz, 2_m * dist);
-std::cout << "Start: " << startF.position().transpose() << std::endl;
-std::cout << "Ende1: " << fc.transpose() << std::endl;
-std::cout << "Ende2: " << ff.transpose() << std::endl;
+		  epropagator, startF, pT, phi, theta, Bz, 0.3_m * dist);
 	  tgFCE->SetPoint(i, fc.x(), fc.y(), fc.z());
 	  tgFFE->SetPoint(i, ff.x(), ff.y(), ff.z());
   }
@@ -146,8 +136,110 @@ std::cout << "Ende2: " << ff.transpose() << std::endl;
 	delete(tgFCE);
 	delete(tgFFE);
 }
+
+// Test different distances
+  TGraph2D* tgCCE = new TGraph2D();
+  TGraph2D* tgCFE = new TGraph2D();
+  TGraph2D* tgFCE = new TGraph2D();
+  TGraph2D* tgFFE = new TGraph2D();
+  TGraph* tgPhi = new TGraph();
+  TGraph* tgThe = new TGraph();
+  TGraph* tgMom = new TGraph();
+  TGraph* tgCharge = new TGraph();
+  
+  std::uniform_real_distribution ds(0., 5_m);
+  std::uniform_real_distribution dphi(-M_PI, M_PI);
+  std::uniform_real_distribution dthe(10_degree, 170_degree);
+  std::uniform_real_distribution dp(50_MeV, 100_GeV);
+  std::uniform_int_distribution<> dq(-1, 1);
+   
+  for(unsigned int i = 0; i < 100000; i++)
+  {
+	// Start parameters
+	double x = dx(gen);
+	double y = dy(gen);
+	double z = dz(gen);
+	double s = ds(gen);
+	
+	phi = dphi(gen);
+	theta = dthe(gen);
+	pT = dp(gen);
+	q = dq(gen);
+	
+	px = pT * cos(phi);
+	py = pT * sin(phi);
+	pz = pT / tan(theta);
+	mom << px, py, pz;
+
+	if(q == 0)
+	{
+		NeutralCurvilinearTrackParameters startC(std::nullopt, Vector3D(x,y,z), mom, 0);
+		
+		Vector3D cc = constant_field_propagation<CurvilinearParameters>(
+			  epropagator, startC, pT, phi, theta, Bz, s);
+		Vector3D cf = constant_field_propagation<FreeTrackParameters>(
+			  epropagator, startC, pT, phi, theta, Bz, s);
+
+		tgCCE->SetPoint(i, cc.x(), cc.y(), cc.z());
+		tgCFE->SetPoint(i, cf.x(), cf.y(), cf.z()); 		
+	} else {
+		CurvilinearParameters startC(std::nullopt, Vector3D(x,y,z), mom, q, 0);
+		
+		Vector3D cc = constant_field_propagation<CurvilinearParameters>(
+			  epropagator, startC, pT, phi, theta, Bz, s);
+		Vector3D cf = constant_field_propagation<FreeTrackParameters>(
+			  epropagator, startC, pT, phi, theta, Bz, s);
+
+		tgCCE->SetPoint(i, cc.x(), cc.y(), cc.z());
+		tgCFE->SetPoint(i, cf.x(), cf.y(), cf.z()); 
+	}
+    
+	Vector3D dir = mom.normalized();
+	FreeVector pars;
+	pars << x, y, z, 0., dir.x(), dir.y(), dir.z(), (q == 0 ? 1 : q) / mom.norm();
+
+	if(q == 0)
+	{
+		NeutralFreeTrackParameters startF(std::nullopt, pars);
+
+		// constant field propagation eigen stepper
+		Vector3D fc = constant_field_propagation<CurvilinearParameters>(
+		  epropagator, startF, pT, phi, theta, Bz, s);
+		Vector3D ff = constant_field_propagation<FreeTrackParameters>(
+		  epropagator, startF, pT, phi, theta, Bz, s);
+		tgFCE->SetPoint(i, fc.x(), fc.y(), fc.z());
+		tgFFE->SetPoint(i, ff.x(), ff.y(), ff.z());
+	} else {
+		FreeTrackParameters startF(std::nullopt, pars);
+
+		// constant field propagation eigen stepper
+		Vector3D fc = constant_field_propagation<CurvilinearParameters>(
+		  epropagator, startF, pT, phi, theta, Bz, s);
+		Vector3D ff = constant_field_propagation<FreeTrackParameters>(
+		  epropagator, startF, pT, phi, theta, Bz, s);
+		tgFCE->SetPoint(i, fc.x(), fc.y(), fc.z());
+		tgFFE->SetPoint(i, ff.x(), ff.y(), ff.z());
+	}
+	tgPhi->SetPoint(i, s, phi);
+	tgThe->SetPoint(i, s, theta);
+	tgCharge->SetPoint(i, s, q);
+	tgMom->SetPoint(i, s, mom.norm());
+  }
+
+	gDirectory->cd();
+	gDirectory->WriteObject(tgCCE, "CCpos");
+	gDirectory->WriteObject(tgCFE, "CFpos");
+	gDirectory->WriteObject(tgFCE, "FCpos");
+	gDirectory->WriteObject(tgFFE, "FFpos");
+	gDirectory->WriteObject(tgPhi, "phi");
+	gDirectory->WriteObject(tgThe, "theta");
+	gDirectory->WriteObject(tgMom, "momentum");
+	gDirectory->WriteObject(tgCharge, "charge");
+	tf.Write();
+	
 tf.Close();
 }
+*/
 
 /// test correct covariance transport for curvilinear parameters
 /// this test only works within the
@@ -157,67 +249,285 @@ BOOST_AUTO_TEST_CASE(covariance_transport_to_curvilinear) {
 	TFile tf("IntegrationtestsCov.root", "RECREATE");
 	
 	std::default_random_engine gen(42);
-	std::uniform_real_distribution<double> dphi(-M_PI, M_PI);
-	std::uniform_real_distribution<double> dthe(0., M_PI);
-	std::uniform_real_distribution<double> dpT(1_GeV, 50_GeV);
-	std::uniform_real_distribution<double> dplimit(0.5_m, 10_m);
+	std::normal_distribution<double> dx(0., sqrt(50_mm));
+	std::normal_distribution<double> dy(0., sqrt(50_mm));
+	std::normal_distribution<double> dz(0., sqrt(100_mm));
+	std::uniform_real_distribution ds(0., 5_m);
+	std::uniform_real_distribution dphi(-M_PI, M_PI);
+	std::uniform_real_distribution dthe(10_degree, 170_degree);
+	std::uniform_real_distribution dp(50_MeV, 100_GeV);
+	std::uniform_int_distribution<> dq(-1, 1);
   
-	// The parameter that will be modified
-	for(unsigned int paramMod = 0; paramMod < 4; paramMod++)
-	{
-		// Sample
-		for(unsigned int i = 0; i < 100; i++)
+    TGraph2D* start1 = new TGraph2D();
+    TGraph* start2 = new TGraph();
+    TGraph2D* end1 = new TGraph2D();
+    TGraph2D* end2 = new TGraph2D();
+    TGraph2D* rend1 = new TGraph2D();
+    TGraph2D* rend2 = new TGraph2D();
+    
+	// Sample
+	for(unsigned int i = 0; i < 100000; i++)
+	{		
+		/// Random parameters
+		double x = dx(gen);
+		double y = dy(gen);
+		double z = dz(gen);
+		double phi = dphi(gen);
+		double theta = dthe(gen);
+		double pT = dp(gen);
+		double s = ds(gen);
+		double q = dq(gen);
+
+		//~ std::vector<float> startParams{x, y, z, phi, theta, pT, s, q};
+		start1->SetPoint(i, phi, theta, pT);
+		start2->SetPoint(i, s, q);
+
+		// define start parameters
+		double px = pT * cos(phi);
+		double py = pT * sin(phi);
+		double pz = pT / tan(theta);
+		double time = 0.;
+		Vector3D pos(x, y, z);
+		Vector3D mom(px, py, pz);
+		Vector3D dir = mom.normalized();
+		
+		std::optional<FreeCovariance> covOptFree = std::nullopt;
+		FreeCovariance covFree;
+		// take some major correlations (off-diagonals)
+		// clang-format off
+		covFree <<
+		 10_mm, 0, 0.123, 0, 0.01, 0.01, 0.01, 0,
+		 0, 10_mm, 0, 0, 0.01, 0.01, 0.01, 0,
+		 0.123, 0, 10_mm, 0, 0.01, 0.01, 0.1, 0,
+		 0, 0, 0, 1_ns, 0, 0, 0, 0,
+		 0.01, 0.01, 0.01, 0, 0.0123, 0, 0, 0,
+		 0.01, 0.01, 0.01, 0, 0, 0.0123, 0, 0,
+		 0.01, 0.01, 0.01, 0, 0, 0, 0.0123, 0,
+		 0, 0, 0, 0, 0, 0, 0, 1_e / 10_GeV;
+		// clang-format on
+		covOptFree = covFree;
+
+		if(q == 0)
 		{
-			/// Parameters for modification
-			double phi = (paramMod == 0 ? dphi(gen) : 0.);
-			double theta = (paramMod == 1 ? dthe(gen) : 0.);
-			double pT = (paramMod == 2 ? dpT(gen) : 0.);
-			/// TODO: add charge?
-			double plimit = (paramMod == 3 ? dplimit(gen) : 1_m);
-
-			// define start parameters
-			double x = 1.;
-			double y = 0.;
-			double z = 0.;
-			double px = pT * cos(phi);
-			double py = pT * sin(phi);
-			double pz = pT / tan(theta);
-			double q = -1_e;
-			double time = 0.;
-			Vector3D pos(x, y, z);
-			Vector3D mom(px, py, pz);
-			
-			std::optional<FreeCovariance> covOptFree = std::nullopt;
-			FreeCovariance covFree;
-			// take some major correlations (off-diagonals)
-			// clang-format off
-			covFree <<
-			 10_mm, 0, 0.123, 0, 0.01, 0.01, 0.01, 0,
-			 0, 10_mm, 0, 0, 0.01, 0.01, 0.01, 0,
-			 0.123, 0, 10_mm, 0, 0.01, 0.01, 0.1, 0,
-			 0, 0, 0, 1_ns, 0, 0, 0, 0,
-			 0.01, 0.01, 0.01, 0, 0.0123, 0, 0, 0,
-			 0.01, 0.01, 0.01, 0, 0, 0.0123, 0, 0,
-			 0.01, 0.01, 0.01, 0, 0, 0, 0.0123, 0,
-			 0, 0, 0, 0, 0, 0, 0, 1_e / 10_GeV;
-			// clang-format on
-			covOptFree = covFree;
-
-			Vector3D dir = mom.normalized();
-			FreeVector parsC, parsN;
-			parsC << x, y, z, time, dir.x(), dir.y(), dir.z(), q / mom.norm();
+			FreeVector parsN;
 			parsN << x, y, z, time, dir.x(), dir.y(), dir.z(), 1. / mom.norm();
-			FreeTrackParameters startCF(covOptFree, parsC);
-			FreeTrackParameters startNF(covOptFree, parsC);
+			NeutralFreeTrackParameters startNF(covOptFree, parsN);
 			
-			auto covCurvSN = covariance_curvilinear<CurvilinearParameters>(spropagator, startNF, plimit);
-			auto covCurvRN = covariance_curvilinear<CurvilinearParameters>(rspropagator, startNF, plimit);
-			auto covCurvEC = covariance_curvilinear<CurvilinearParameters>(epropagator, startCF, plimit);
-			auto covCurvRC = covariance_curvilinear<CurvilinearParameters>(repropagator, startCF, plimit);
+			auto covCurvSN = covariance_curvilinear<CurvilinearParameters>(spropagator, startNF, s);
+			auto covCurvRN = covariance_curvilinear<CurvilinearParameters>(rspropagator, startNF, s);
+			
+			end1->SetPoint(i, covCurvSN(0,0), covCurvSN(1,1), covCurvSN(2,2));
+			end2->SetPoint(i, covCurvSN(3,3), covCurvSN(4,4), covCurvSN.determinant());
+			rend1->SetPoint(i, covCurvRN(0,0), covCurvRN(1,1), covCurvRN(2,2));
+			rend2->SetPoint(i, covCurvRN(3,3), covCurvRN(4,4), covCurvRN.determinant());
+		} else {
+			FreeVector parsC;
+			parsC << x, y, z, time, dir.x(), dir.y(), dir.z(), q / mom.norm();
+			FreeTrackParameters startCF(covOptFree, parsC);
+			auto covCurvEC = covariance_curvilinear<CurvilinearParameters>(epropagator, startCF, s);
+			auto covCurvRC = covariance_curvilinear<CurvilinearParameters>(repropagator, startCF, s);
+
+			end1->SetPoint(i, covCurvEC(0,0), covCurvEC(1,1), covCurvEC(2,2));
+			end2->SetPoint(i, covCurvEC(3,3), covCurvEC(4,4), covCurvEC.determinant());
+			end1->SetPoint(i, covCurvRC(0,0), covCurvRC(1,1), covCurvRC(2,2));
+			end2->SetPoint(i, covCurvRC(3,3), covCurvRC(4,4), covCurvRC.determinant());
 		}
 	}
+	
+	gDirectory->cd();
+	gDirectory->WriteObject(start1, "StartGraph1");
+	gDirectory->WriteObject(start2, "StartGraph2");
+	gDirectory->WriteObject(end1, "EndGraph1");
+	gDirectory->WriteObject(end2, "EndGraph2");
+	gDirectory->WriteObject(rend1, "REndGraph1");
+	gDirectory->WriteObject(rend2, "REndGraph2");
+	
+	tf.Write();
+	tf.Close();
 }
- 
+
+
+BOOST_AUTO_TEST_CASE(covariance_transport_to_free) {
+
+	TFile tf("IntegrationtestsCov2.root", "RECREATE");
+	
+	std::default_random_engine gen(42);
+	std::normal_distribution<double> dx(0., sqrt(50_mm));
+	std::normal_distribution<double> dy(0., sqrt(50_mm));
+	std::normal_distribution<double> dz(0., sqrt(100_mm));
+	std::uniform_real_distribution ds(0., 5_m);
+	std::uniform_real_distribution dphi(-M_PI, M_PI);
+	std::uniform_real_distribution dthe(10_degree, 170_degree);
+	std::uniform_real_distribution dp(50_MeV, 100_GeV);
+	std::uniform_int_distribution<> dq(-1, 1);
+  
+	TGraph2D* start1 = new TGraph2D();
+    TGraph* start2 = new TGraph();
+    TGraph2D* cend1 = new TGraph2D();
+    TGraph2D* cend2 = new TGraph2D();
+    TGraph2D* cend3 = new TGraph2D();
+    TGraph2D* crend1 = new TGraph2D();
+    TGraph2D* crend2 = new TGraph2D();
+    TGraph2D* crend3 = new TGraph2D();
+    TGraph2D* fend1 = new TGraph2D();
+    TGraph2D* fend2 = new TGraph2D();
+    TGraph2D* fend3 = new TGraph2D();
+    TGraph2D* frend1 = new TGraph2D();
+    TGraph2D* frend2 = new TGraph2D();
+    TGraph2D* frend3 = new TGraph2D();
+    
+	// Sample
+	for(unsigned int i = 0; i < 100000; i++)
+	{		
+		/// Random parameters
+		double x = dx(gen);
+		double y = dy(gen);
+		double z = dz(gen);
+		double phi = dphi(gen);
+		double theta = dthe(gen);
+		double pT = dp(gen);
+		double s = ds(gen);
+		double q = dq(gen);
+
+		start1->SetPoint(i, phi, theta, pT);
+		start2->SetPoint(i, s, q);
+
+		// define start parameters
+		double px = pT * cos(phi);
+		double py = pT * sin(phi);
+		double pz = pT / tan(theta);
+		double time = 0.;
+		Vector3D pos(x, y, z);
+		Vector3D mom(px, py, pz);
+		Vector3D dir = mom.normalized();
+		
+		std::optional<Covariance> covOpt = std::nullopt;
+		std::optional<FreeCovariance> covOptFree = std::nullopt;
+		Covariance cov;
+		// take some major correlations (off-diagonals)
+		// clang-format off
+		cov <<
+		 10_um, 0, 0.123, 0, 0.5, 0,
+		 0, 10_um, 0, 0.162, 0, 0,
+		 0.123, 0, 0.1, 0, 0, 0,
+		 0, 0.162, 0, 0.1, 0, 0,
+		 0.5, 0, 0, 0, 1_e / 10_GeV, 0,
+		 0, 0, 0, 0, 0, 1_us;
+		// clang-format on
+		covOpt = cov;
+
+		FreeCovariance covFree;
+		// take some major correlations (off-diagonals)
+		// clang-format off
+		covFree <<
+		 10_mm, 0, 0.123, 0, 0.1, 0.1, 0.1, 0,
+		 0, 10_mm, 0, 0, 0.1, 0.1, 0.1, 0,
+		 0.123, 0, 10_mm, 0, 0.1, 0.1, 0.1, 0,
+		 0, 0, 0, 1_ns, 0, 0, 0, 0,
+		 0.1, 0.1, 0.1, 0, 0.123, 0, 0, 0,
+		 0.1, 0.1, 0.1, 0, 0, 0.123, 0, 0,
+		 0.1, 0.1, 0.1, 0, 0, 0, 0.123, 0,
+		 0, 0, 0, 0, 0, 0, 0, 1_e / 10_GeV;
+		// clang-format on
+		covOptFree = covFree;
+
+		///
+		/// Curvilinear to Free Tests
+		///
+		if(q == 0) 
+		{
+			NeutralCurvilinearTrackParameters startNC(covOpt, pos, mom, 0);
+			
+			// covariance check for straight line stepper
+			auto covObtained = covariance_curvilinear<FreeTrackParameters>(
+				spropagator, startNC, s);
+			auto covCalculated = covariance_curvilinear<FreeTrackParameters>(
+				rspropagator, startNC, s);
+			
+			cend1->SetPoint(i, covObtained(0,0), covObtained(1,1), covObtained(2,2));
+			cend2->SetPoint(i, covObtained(3,3), covObtained(4,4), covObtained(5,5));
+			cend3->SetPoint(i, covObtained(6,6), covObtained(7,7), covObtained.determinant());
+			crend1->SetPoint(i, covCalculated(0,0), covCalculated(1,1), covCalculated(2,2));
+			crend2->SetPoint(i, covCalculated(3,3), covCalculated(4,4), covCalculated(5,5));
+			crend3->SetPoint(i, covCalculated(6,6), covCalculated(7,7), covCalculated.determinant());
+		} else {
+			CurvilinearParameters startCC(covOpt, pos, mom, q, 0);
+				
+			// covariance check for eigen stepper
+			auto covCalculated = covariance_curvilinear<FreeTrackParameters>(
+				repropagator, startCC, s);
+				
+			auto covObtained = covariance_curvilinear<FreeTrackParameters>(epropagator,
+																	  startCC, s);
+
+			cend1->SetPoint(i, covObtained(0,0), covObtained(1,1), covObtained(2,2));
+			cend2->SetPoint(i, covObtained(3,3), covObtained(4,4), covObtained(5,5));
+			cend3->SetPoint(i, covObtained(6,6), covObtained(7,7), covObtained.determinant());
+			crend1->SetPoint(i, covCalculated(0,0), covCalculated(1,1), covCalculated(2,2));
+			crend2->SetPoint(i, covCalculated(3,3), covCalculated(4,4), covCalculated(5,5));
+			crend3->SetPoint(i, covCalculated(6,6), covCalculated(7,7), covCalculated.determinant());
+		}
+		
+		///
+		/// Free to Free Tests
+		///
+		if(q == 0) {
+			FreeVector parsN;
+			parsN << x, y, z, 0, dir.x(), dir.y(), dir.z(), 1. / mom.norm();
+			NeutralFreeTrackParameters startNF(covOptFree, parsN);
+			
+			// covariance check for straight line stepper
+			auto covObtained = covariance_curvilinear<FreeTrackParameters>(
+				spropagator, startNF, s);
+			auto covCalculated = covariance_curvilinear<FreeTrackParameters>(
+				rspropagator, startNF, s);
+
+			fend1->SetPoint(i, covObtained(0,0), covObtained(1,1), covObtained(2,2));
+			fend2->SetPoint(i, covObtained(3,3), covObtained(4,4), covObtained(5,5));
+			fend3->SetPoint(i, covObtained(6,6), covObtained(7,7), covObtained.determinant());
+			frend1->SetPoint(i, covCalculated(0,0), covCalculated(1,1), covCalculated(2,2));
+			frend2->SetPoint(i, covCalculated(3,3), covCalculated(4,4), covCalculated(5,5));
+			frend3->SetPoint(i, covCalculated(6,6), covCalculated(7,7), covCalculated.determinant());
+		} else {
+			FreeVector parsC;
+			parsC << x, y, z, 0, dir.x(), dir.y(), dir.z(), q / mom.norm();
+			FreeTrackParameters startCF(covOptFree, parsC);
+			
+			// covariance check for eigen stepper
+			auto covObtained = covariance_curvilinear<FreeTrackParameters>(epropagator,
+																	  startCF, s);
+			auto covCalculated = covariance_curvilinear<FreeTrackParameters>(
+				repropagator, startCF, s);
+
+			fend1->SetPoint(i, covObtained(0,0), covObtained(1,1), covObtained(2,2));
+			fend2->SetPoint(i, covObtained(3,3), covObtained(4,4), covObtained(5,5));
+			fend3->SetPoint(i, covObtained(6,6), covObtained(7,7), covObtained.determinant());
+			frend1->SetPoint(i, covCalculated(0,0), covCalculated(1,1), covCalculated(2,2));
+			frend2->SetPoint(i, covCalculated(3,3), covCalculated(4,4), covCalculated(5,5));
+			frend3->SetPoint(i, covCalculated(6,6), covCalculated(7,7), covCalculated.determinant());
+		}
+	}
+	
+	gDirectory->cd();
+	gDirectory->WriteObject(start1, "StartGraph1");
+	gDirectory->WriteObject(start2, "StartGraph2");
+	gDirectory->WriteObject(cend1, "CEndGraph1");
+	gDirectory->WriteObject(cend2, "CEndGraph2");
+	gDirectory->WriteObject(cend2, "CEndGraph3");
+	gDirectory->WriteObject(crend1, "CREndGraph1");
+	gDirectory->WriteObject(crend2, "CREndGraph2");
+	gDirectory->WriteObject(crend3, "CREndGraph3");
+	gDirectory->WriteObject(fend1, "FEndGraph1");
+	gDirectory->WriteObject(fend2, "FEndGraph2");
+	gDirectory->WriteObject(fend2, "FEndGraph3");
+	gDirectory->WriteObject(frend1, "FREndGraph1");
+	gDirectory->WriteObject(frend2, "FREndGraph2");
+	gDirectory->WriteObject(frend3, "FREndGraph3");
+	
+	tf.Write();
+	tf.Close();
+}
+
 /**
 BOOST_DATA_TEST_CASE(covariance_transport_to_free,
                      ds::trackParameters* ds::propagationLimit ^
@@ -316,165 +626,6 @@ BOOST_DATA_TEST_CASE(covariance_transport_to_free,
         }
       }
     CHECK_CLOSE_COVARIANCE(covObtained, covCalculated, 1e-3);
-  }
-
-  ///
-  /// Disc to Free Tests
-  ///
-  {
-    auto ssTransform = createPlanarTransform(pos, mom.normalized(),
-                                             0.05 * rand1, 0.05 * rand2);
-    auto startSurface = Surface::makeShared<DiscSurface>(ssTransform, nullptr);
-    BoundParameters startCB(tgContext, covOpt, pos, mom, q, time, startSurface);
-    NeutralBoundTrackParameters startNB(tgContext, covOpt, pos, mom, time,
-                                        startSurface);
-
-    // covariance check for straight line stepper
-    auto covObtained = covariance_curvilinear<FreeTrackParameters>(
-        spropagator, startNB, plimit);
-    auto covCalculated = covariance_curvilinear<FreeTrackParameters>(
-        rspropagator, startNB, plimit);
-    // Numerical fluctuations in the covariances cause errors in relative
-    // comparison. This needs to be tested and avoided by setting both entries
-    // to 1
-    for (unsigned int i = 0; i < covObtained.rows(); i++)
-      for (unsigned int j = 0; j < covObtained.cols(); j++) {
-        if (std::abs(covObtained(i, j)) <
-                std::numeric_limits<double>::epsilon() ||
-            std::abs(covCalculated(i, j)) <
-                std::numeric_limits<double>::epsilon()) {
-          covObtained(i, j) = 1.;
-          covCalculated(i, j) = 1.;
-        }
-      }
-    CHECK_CLOSE_COVARIANCE(covObtained, covCalculated, 1e-3);
-
-    // covariance check for eigen stepper
-    covObtained = covariance_curvilinear<FreeTrackParameters>(epropagator,
-                                                              startCB, plimit);
-    covCalculated = covariance_curvilinear<FreeTrackParameters>(
-        repropagator, startCB, plimit);
-
-    // Numerical fluctuations in the covariances cause errors in relative
-    // comparison. This needs to be tested and avoided by setting both entries
-    // to 1
-    for (unsigned int i = 0; i < covObtained.rows(); i++)
-      for (unsigned int j = 0; j < covObtained.cols(); j++) {
-        if (std::abs(covObtained(i, j)) <
-                std::numeric_limits<double>::epsilon() ||
-            std::abs(covCalculated(i, j)) <
-                std::numeric_limits<double>::epsilon()) {
-          covObtained(i, j) = 1.;
-          covCalculated(i, j) = 1.;
-        }
-      }
-    CHECK_CLOSE_COVARIANCE(covObtained, covCalculated, 1e-3);
-  }
-
-  ///
-  /// Plane to Free Tests
-  ///
-  {
-    auto ssTransform = createPlanarTransform(pos, mom.normalized(),
-                                             0.05 * rand1, 0.05 * rand2);
-    auto startSurface = Surface::makeShared<PlaneSurface>(ssTransform, nullptr);
-    BoundParameters startCB(tgContext, covOpt, pos, mom, q, time, startSurface);
-    NeutralBoundTrackParameters startNB(tgContext, covOpt, pos, mom, time,
-                                        startSurface);
-
-    // covariance check for straight line stepper
-    auto covObtained = covariance_curvilinear<FreeTrackParameters>(
-        spropagator, startNB, plimit);
-    auto covCalculated = covariance_curvilinear<FreeTrackParameters>(
-        rspropagator, startNB, plimit);
-    // Numerical fluctuations in the covariances cause errors in relative
-    // comparison. This needs to be tested and avoided by setting both entries
-    // to 1
-    for (unsigned int i = 0; i < covObtained.rows(); i++)
-      for (unsigned int j = 0; j < covObtained.cols(); j++) {
-        if (std::abs(covObtained(i, j)) <
-                std::numeric_limits<double>::epsilon() ||
-            std::abs(covCalculated(i, j)) <
-                std::numeric_limits<double>::epsilon()) {
-          covObtained(i, j) = 1.;
-          covCalculated(i, j) = 1.;
-        }
-      }
-    CHECK_CLOSE_COVARIANCE(covObtained, covCalculated, 1e-3);
-
-    // covariance check for eigen stepper
-    covObtained = covariance_curvilinear<FreeTrackParameters>(epropagator,
-                                                              startCB, plimit);
-    covCalculated = covariance_curvilinear<FreeTrackParameters>(
-        repropagator, startCB, plimit);
-
-    // Numerical fluctuations in the covariances cause errors in relative
-    // comparison. This needs to be tested and avoided by setting both entries
-    // to 1
-    for (unsigned int i = 0; i < covObtained.rows(); i++)
-      for (unsigned int j = 0; j < covObtained.cols(); j++) {
-        if (std::abs(covObtained(i, j)) <
-                std::numeric_limits<double>::epsilon() ||
-            std::abs(covCalculated(i, j)) <
-                std::numeric_limits<double>::epsilon()) {
-          covObtained(i, j) = 1.;
-          covCalculated(i, j) = 1.;
-        }
-      }
-    CHECK_CLOSE_COVARIANCE(covObtained, covCalculated, 1e-3);
-  }
-
-  ///
-  /// Line to Free Tests
-  ///
-  {
-    auto ssTransform =
-        createCylindricTransform(pos, 0.005 * rand1, 0.005 * rand2);
-    auto startSurface = Surface::makeShared<StrawSurface>(ssTransform, nullptr);
-    BoundParameters startCB(tgContext, covOpt, pos, mom, q, time, startSurface);
-    NeutralBoundTrackParameters startNB(tgContext, covOpt, pos, mom, time,
-                                        startSurface);
-
-    // covariance check for straight line stepper
-    auto covObtained = covariance_curvilinear<FreeTrackParameters>(
-        spropagator, startNB, plimit);
-    auto covCalculated = covariance_curvilinear<FreeTrackParameters>(
-        rspropagator, startNB, plimit);
-    // Numerical fluctuations in the covariances cause errors in relative
-    // comparison. This needs to be tested and avoided by setting both entries
-    // to 1
-    for (unsigned int i = 0; i < covObtained.rows(); i++)
-      for (unsigned int j = 0; j < covObtained.cols(); j++) {
-        if (std::abs(covObtained(i, j)) <
-                std::numeric_limits<double>::epsilon() ||
-            std::abs(covCalculated(i, j)) <
-                std::numeric_limits<double>::epsilon()) {
-          covObtained(i, j) = 1.;
-          covCalculated(i, j) = 1.;
-        }
-      }
-    CHECK_CLOSE_COVARIANCE(covObtained, covCalculated, 5e-1);
-
-    // covariance check for eigen stepper
-    covObtained = covariance_curvilinear<FreeTrackParameters>(epropagator,
-                                                              startCB, plimit);
-    covCalculated = covariance_curvilinear<FreeTrackParameters>(
-        repropagator, startCB, plimit);
-
-    // Numerical fluctuations in the covariances cause errors in relative
-    // comparison. This needs to be tested and avoided by setting both entries
-    // to 1
-    for (unsigned int i = 0; i < covObtained.rows(); i++)
-      for (unsigned int j = 0; j < covObtained.cols(); j++) {
-        if (std::abs(covObtained(i, j)) <
-                std::numeric_limits<double>::epsilon() ||
-            std::abs(covCalculated(i, j)) <
-                std::numeric_limits<double>::epsilon()) {
-          covObtained(i, j) = 1.;
-          covCalculated(i, j) = 1.;
-        }
-      }
-    CHECK_CLOSE_COVARIANCE(covObtained, covCalculated, 1e-1);
   }
 
   ///

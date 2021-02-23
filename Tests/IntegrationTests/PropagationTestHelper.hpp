@@ -109,46 +109,45 @@ Vector3D constant_field_propagation(const Propagator_type& propagator,
     //~ CHECK_CLOSE_ABS(theta, VH::theta(tp->momentum()), 1e-4);
   // clang-format on
 
-  double r = (q * Bz != 0.) ? std::abs(pT / (q * Bz))
-                            : std::numeric_limits<double>::max();
+  //~ double r = (q * Bz != 0.) ? std::abs(pT / (q * Bz))
+                            //~ : std::numeric_limits<double>::max();
 
-  // calculate number of turns of helix
-  double turns = options.pathLimit / (2 * M_PI * r) * sin(theta);
-  // respect direction of curl
-  turns = (q * Bz < 0) ? turns : -turns;
+  //~ // calculate number of turns of helix
+  //~ double turns = options.pathLimit / (2 * M_PI * r) * sin(theta);
+  //~ // respect direction of curl
+  //~ turns = (q * Bz < 0) ? turns : -turns;
 
-  // calculate expected final momentum direction in phi in [-pi,pi]
-  double exp_phi = std::fmod(phi + turns * 2 * M_PI, 2 * M_PI);
-  if (exp_phi < -M_PI) {
-    exp_phi += 2 * M_PI;
-  }
-  if (exp_phi > M_PI) {
-    exp_phi -= 2 * M_PI;
-  }
+  //~ // calculate expected final momentum direction in phi in [-pi,pi]
+  //~ double exp_phi = std::fmod(phi + turns * 2 * M_PI, 2 * M_PI);
+  //~ if (exp_phi < -M_PI) {
+    //~ exp_phi += 2 * M_PI;
+  //~ }
+  //~ if (exp_phi > M_PI) {
+    //~ exp_phi -= 2 * M_PI;
+  //~ }
 
-  // calculate expected position
-  double exp_z = pos.z() + mom.z() / pT * 2 * M_PI * r * std::abs(turns);
+  //~ // calculate expected position
+  //~ double exp_z = pos.z() + mom.z() / pT * 2 * M_PI * r * std::abs(turns);
 
-  // calculate center of bending circle in transverse plane
-  double xc, yc;
-  // offset with respect to starting point
-  double dx = r * cos(M_PI / 2 - phi);
-  double dy = r * sin(M_PI / 2 - phi);
-  if (q * Bz < 0) {
-    xc = pos.x() - dx;
-    yc = pos.y() + dy;
-  } else {
-    xc = pos.x() + dx;
-    yc = pos.y() - dy;
-  }
-  // phi position of starting point in bending circle
-  double phi0 = std::atan2(pos.y() - yc, pos.x() - xc);
+  //~ // calculate center of bending circle in transverse plane
+  //~ double xc, yc;
+  //~ // offset with respect to starting point
+  //~ double dx = r * cos(M_PI / 2 - phi);
+  //~ double dy = r * sin(M_PI / 2 - phi);
+  //~ if (q * Bz < 0) {
+    //~ xc = pos.x() - dx;
+    //~ yc = pos.y() + dy;
+  //~ } else {
+    //~ xc = pos.x() + dx;
+    //~ yc = pos.y() - dy;
+  //~ }
+  //~ // phi position of starting point in bending circle
+  //~ double phi0 = std::atan2(pos.y() - yc, pos.x() - xc);
 
-  // calculated expected position in transverse plane
-  double exp_x = xc + r * cos(phi0 + turns * 2 * M_PI);
-  double exp_y = yc + r * sin(phi0 + turns * 2 * M_PI);
+  //~ // calculated expected position in transverse plane
+  //~ double exp_x = xc + r * cos(phi0 + turns * 2 * M_PI);
+  //~ double exp_y = yc + r * sin(phi0 + turns * 2 * M_PI);
 
-/// MODIFIED
   // clang-format off
     //~ CHECK_CLOSE_ABS(exp_phi, VH::phi(tp->momentum()), 1e-4);
     //~ CHECK_CLOSE_ABS(exp_x, tp->position()(0), disttol);
@@ -329,7 +328,7 @@ auto covariance_curvilinear(const Propagator_type& propagator,
   options.maxSteps = 1e5;
   options.pathLimit = plimit;
   options.debug = debug;
-  options.tolerance = 1e-9;
+  options.tolerance = 1e-8;
 
   const auto result =
       propagator.template propagate<end_parameters_t>(start, options).value();

@@ -206,6 +206,8 @@ Acts::Result<double> Acts::EigenStepper<B, E, A>::step(
                                           std::abs(2. * error_estimate)),
                                          0.25)),
                  4.);
+    if(state.stepping.stepSize.value(ConstrainedStep::aborter) < 0. && state.stepping.navDir == 1)
+		state.stepping.stepSize.update(-state.stepping.stepSize.value(ConstrainedStep::aborter), ConstrainedStep::aborter);
 
     state.stepping.stepSize = state.stepping.stepSize * stepSizeScaling;
 

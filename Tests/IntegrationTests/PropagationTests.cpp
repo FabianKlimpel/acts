@@ -36,7 +36,9 @@
 
 #include <random>
 #include <TGraph2D.h>
+#include <TGraph.h>
 #include <TFile.h>
+#include <TNtuple.h>
 
 namespace bdata = boost::unit_test::data;
 namespace tt = boost::test_tools;

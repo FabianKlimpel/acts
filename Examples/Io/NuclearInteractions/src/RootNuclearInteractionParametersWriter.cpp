@@ -233,19 +233,20 @@ void recordKinematicParametrisation(
       ActsExamples::detail::NuclearInteractionParametrisation;
   gDirectory->mkdir(std::to_string(multiplicity).c_str());
   gDirectory->cd(std::to_string(multiplicity).c_str());
-
+std::cout << "Constructing momenta" << std::endl;
   // Parametrise the momentum und invarian mass distributions
   const auto momentumParameters = Parametrisation::buildMomentumParameters(
       eventFractionCollection, multiplicity, interactionType, cfg.momentumBins);
   std::vector<Parametrisation::CumulativeDistribution> distributionsMom =
       momentumParameters.second;
+std::cout << "Constructing invariant masses" << std::endl;
   const auto invariantMassParameters =
       Parametrisation::buildInvariantMassParameters(
           eventFractionCollection, multiplicity, interactionType,
           cfg.invariantMassBins);
   std::vector<Parametrisation::CumulativeDistribution> distributionsInvMass =
       invariantMassParameters.second;
-
+std::cout << "Done: " << distributionsMom.size() << " | " << distributionsInvMass.size() << std::endl;
   // Fast exit in case of no events
   if (!distributionsMom.empty() && !distributionsInvMass.empty()) {
     if (multiplicity > 1) {
@@ -286,11 +287,13 @@ void recordKinematicParametrisation(
       gDirectory->WriteObject(&invMassVecVal, "InvariantMassEigenvalues");
       gDirectory->WriteObject(&invMassVecVec, "InvariantMassEigenvectors");
       gDirectory->WriteObject(&invMassVecMean, "InvariantMassMean");
+std::cout << "Kinematics done" << std::endl;
     }
 
     const auto momDistributions = buildMaps(distributionsMom);
+std::cout << "Mom Maps built << std" << std::endl;
     const auto invMassDistributions = buildMaps(distributionsInvMass);
-
+std::cout << "InvMass Maps built << std" << std::endl;
     // Write the distributions
     for (unsigned int i = 0; i <= multiplicity; i++) {
       if (cfg.writeOptionalHistograms) {
@@ -323,7 +326,7 @@ void recordKinematicParametrisation(
       delete (distributionsInvMass[i]);
     }
   }
-
+std::cout << "Writing done" << std::endl;
   gDirectory->cd("..");
 }
 }  // namespace

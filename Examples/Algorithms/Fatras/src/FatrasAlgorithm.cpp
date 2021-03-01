@@ -27,6 +27,8 @@
 #include "ActsFatras/Selectors/KinematicCasts.hpp"
 #include "ActsFatras/Selectors/SelectorHelpers.hpp"
 #include "ActsFatras/Selectors/SurfaceSelectors.hpp"
+#include "ActsExamples/Fatras/NuclearInteractionOptions.hpp"
+#include "ActsFatras/Physics/NuclearInteraction/NuclearInteraction.hpp"
 
 namespace {
 
@@ -90,7 +92,7 @@ struct FatrasAlgorithmSimulationT final
   // neutral particles w/ photon conversion and no hits
   using NeutralSelector = CutPMin;
   using NeutralInteractions =
-      ActsFatras::InteractionList<ActsFatras::PhotonConversion>;
+      ActsFatras::InteractionList<ActsFatras::PhotonConversion, ActsFatras::NuclearInteraction>;
   using NeutralSimulation = ActsFatras::SingleParticleSimulation<
       NeutralPropagator, NeutralInteractions, ActsFatras::NoSurface,
       ActsFatras::NoDecay>;
@@ -138,6 +140,7 @@ struct FatrasAlgorithmSimulationT final
     simulation.charged.selectHitSurface.sensitive = cfg.generateHitsOnSensitive;
     simulation.charged.selectHitSurface.material = cfg.generateHitsOnMaterial;
     simulation.charged.selectHitSurface.passive = cfg.generateHitsOnPassive;
+    ActsExamples::Options::setNuclearInteractionParametrisations(cfg.imputParametrisation, simulation);
   }
   ~FatrasAlgorithmSimulationT() final override = default;
 

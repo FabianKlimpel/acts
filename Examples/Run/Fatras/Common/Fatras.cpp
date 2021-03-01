@@ -24,6 +24,7 @@
 #include "ActsExamples/Options/ParticleGunOptions.hpp"
 #include "ActsExamples/TruthTracking/ParticleSelector.hpp"
 #include "ActsExamples/Utilities/Paths.hpp"
+#include "ActsExamples/Fatras/NuclearInteractionOptions.hpp"
 
 #include <memory>
 #include <string>
@@ -173,6 +174,7 @@ void setupSimulation(
   fatrasCfg.randomNumbers = randomNumbers;
   fatrasCfg.trackingGeometry = trackingGeometry;
   fatrasCfg.magneticField = ActsExamples::Options::readMagneticField(vars);
+  fatrasCfg.imputParametrisation = ActsExamples::Options::readNuclearInteractionConfig(vars);
 
   sequencer.addAlgorithm(
       std::make_shared<FatrasAlgorithm>(std::move(fatrasCfg), logLevel));

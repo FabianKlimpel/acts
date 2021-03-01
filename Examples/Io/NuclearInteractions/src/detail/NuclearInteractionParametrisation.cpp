@@ -93,6 +93,8 @@ Parametrisation buildMomentumParameters(const EventCollection& events,
                                         unsigned int nBins) {
   // Strip off data
   auto momenta = prepareMomenta(events, multiplicity, soft);
+  if(momenta.empty())
+	return Parametrisation();
 
   // Build histos
   ProbabilityDistributions histos = buildMomPerMult(momenta, nBins);
@@ -218,6 +220,8 @@ Parametrisation buildInvariantMassParameters(const EventCollection& events,
                                              bool soft, unsigned int nBins) {
   // Strip off data
   auto invariantMasses = prepareInvariantMasses(events, multiplicity, soft);
+  if(invariantMasses.empty())
+	return Parametrisation();
 
   // Build histos
   ProbabilityDistributions histos = buildMomPerMult(invariantMasses, nBins);

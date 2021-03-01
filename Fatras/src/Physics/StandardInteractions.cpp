@@ -17,9 +17,9 @@ ActsFatras::makeStandardChargedElectroMagneticInteractions(double pMin) {
   return pl;
 }
 
-ActsFatras::NeutralPhysicsList
-ActsFatras::makeNeutralPhysicsList(double minimumAbsMomentum) {
-  NeutralPhysicsList pl;
-  pl.get<detail::ParametrizedNuclearInteraction>().selectInput.valMin = minimumAbsMomentum;
-  return pl;
-}
+//~ ActsFatras::NeutralPhysicsList
+//~ ActsFatras::makeNeutralPhysicsList(double minimumAbsMomentum) {
+  //~ NeutralPhysicsList pl;
+  //~ pl.get<detail::ParametrizedNuclearInteraction>().selectInput.valMin = minimumAbsMomentum;
+  //~ return pl;
+//~ }

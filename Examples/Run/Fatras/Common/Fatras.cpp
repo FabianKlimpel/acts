@@ -199,6 +199,7 @@ int runFatras(int argc, char* argv[],
   detector->addOptions(desc);
   Options::addMaterialOptions(desc);
   Options::addMagneticFieldOptions(desc);
+  Options::addNuclearInteractionOptions(desc);
   // algorithm-specific options
   FatrasAlgorithm::addOptions(desc);
 

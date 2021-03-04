@@ -43,7 +43,7 @@ class RootNuclearInteractionParametersWriter final
     /// Number of bins used for the invariant mass distributions
     unsigned int invariantMassBins = 1e6;
     /// The highest final state multiplicity that will considered
-    unsigned int multiplicityMax = 5;
+    unsigned int multiplicityMax = 2;
     /// Choice whether the histograms should be written to file
     bool writeOptionalHistograms = true;
     /// Number of simulated histograms

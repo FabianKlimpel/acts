@@ -307,7 +307,7 @@ std::cout << "InvMass Maps built << std" << std::endl;
       gDirectory->WriteObject(
           &momDistributions[i].second,
           ("MomentumDistributionBinContents_" + std::to_string(i)).c_str());
-      delete (distributionsMom[i]);
+      //~ delete (distributionsMom[i]);
     }
     for (unsigned int i = 0; i < multiplicity; i++) {
       if (cfg.writeOptionalHistograms) {
@@ -323,7 +323,7 @@ std::cout << "InvMass Maps built << std" << std::endl;
           &invMassDistributions[i].second,
           ("InvariantMassDistributionBinContents_" + std::to_string(i))
               .c_str());
-      delete (distributionsInvMass[i]);
+      //~ delete (distributionsInvMass[i]);
     }
   }
 std::cout << "Writing done" << std::endl;
@@ -463,7 +463,7 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   }
   //~ tf.cd();
   tf->Write();
-  tf->Close();
+  //~ tf->Close();
 
   delete (nuclearInteractionProbability);
   delete (multiplicity.first);

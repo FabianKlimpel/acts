@@ -50,6 +50,7 @@ struct NuclearInteraction {
   template <typename generator_t>
   std::pair<Scalar, Scalar> generatePathLimits(generator_t& generator,
                                                const Particle& particle) const {
+std::cout << "Particle Limit: " << particle << std::endl;												   
     // Fast exit: No paramtrization provided
     if (multiParticleParameterisation.empty()) {
       return std::make_pair(std::numeric_limits<Scalar>::infinity(),
@@ -92,7 +93,7 @@ struct NuclearInteraction {
   template <typename generator_t>
   bool run(generator_t& generator, Particle& particle,
            std::vector<Particle>& generated) const {
-std::cout << "Particle: " << particle << std::endl;
+std::cout << "Particle Int: " << particle << std::endl;
     // Fast exit: No paramtrization provided
     if (multiParticleParameterisation.empty()) {
       return false;

@@ -450,7 +450,7 @@ std::cout << "End Run called" << std::endl;
                std::to_string(i) + " particle(s) final state finished");
   }
 std::cout << "!Will cd()" << std::endl;   
-  tf->cd();
+  gDirectory->cd();
 std::cout << "!Will write" << std::endl;
   tf->Write();
 std::cout << "!Will close" << std::endl;

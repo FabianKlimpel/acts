@@ -20,6 +20,7 @@
 #include <cmath>
 #include <iterator>
 #include <limits>
+#include <optional>
 #include <random>
 #include <vector>
 
@@ -342,7 +343,7 @@ std::vector<int> NuclearInteraction::samplePdgIds(
   // Find the producers probability distribution
   auto citProducer = pdgMap.cbegin();
   while (citProducer->first != particlePdg && citProducer != pdgMap.end())
-    citProducer++
+    citProducer++;
   const std::vector<std::pair<int, float>>& mapInitial = citProducer->second;
   // Set the first particle depending on the interaction type
   if (soft)

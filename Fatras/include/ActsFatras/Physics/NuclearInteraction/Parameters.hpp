@@ -55,8 +55,6 @@ struct Parameters {
       }
     }
     
-    ~ParametersWithFixedMultiplicity() = default;
-
     bool validParametrisation = false;
 
     /// Momentum parameters

@@ -222,7 +222,7 @@ int runFatras(int argc, char* argv[],
   // setup algorithm chain
   setupInput(vars, sequencer, randomNumbers);
   setupSimulation(vars, sequencer, randomNumbers, trackingGeometry);
-  //~ setupOutput(vars, sequencer);
+  setupOutput(vars, sequencer);
 
   // run the simulation
   return sequencer.run();

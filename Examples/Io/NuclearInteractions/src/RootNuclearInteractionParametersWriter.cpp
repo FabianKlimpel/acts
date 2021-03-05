@@ -305,7 +305,6 @@ std::cout << "InvMass Maps built << std" << std::endl;
       gDirectory->WriteObject(
           &momDistributions[i].second,
           ("MomentumDistributionBinContents_" + std::to_string(i)).c_str());
-      //~ delete (distributionsMom[i]);
     }
     for (unsigned int i = 0; i < multiplicity; i++) {
       if (cfg.writeOptionalHistograms) {
@@ -321,7 +320,6 @@ std::cout << "InvMass Maps built << std" << std::endl;
           &invMassDistributions[i].second,
           ("InvariantMassDistributionBinContents_" + std::to_string(i))
               .c_str());
-      //~ delete (distributionsInvMass[i]);
     }
   }
 std::cout << "Writing done" << std::endl;
@@ -448,7 +446,6 @@ std::cout << "End Run called" << std::endl;
     ACTS_DEBUG("Starting parametrisation of final state kinematics for hard " +
                std::to_string(i) + " particle(s) final state");
     recordKinematicParametrisation(m_eventFractionCollection, false, i, m_cfg);
-    //~ tf.Flush();
     ACTS_DEBUG("Parametrisation of final state kinematics for hard " +
                std::to_string(i) + " particle(s) final state finished");
   }
@@ -459,9 +456,9 @@ std::cout << "!Will write" << std::endl;
 std::cout << "!Will close" << std::endl;
   tf->Close();
 std::cout << "!Will return" << std::endl;
-  delete (nuclearInteractionProbability);
-  delete (multiplicity.first);
-  delete (multiplicity.second);
+  //~ delete (nuclearInteractionProbability);
+  //~ delete (multiplicity.first);
+  //~ delete (multiplicity.second);
   return ProcessCode::SUCCESS;
 }
 

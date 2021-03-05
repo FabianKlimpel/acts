@@ -100,7 +100,6 @@ struct NuclearInteraction {
     // Find the parametrisation that corresponds to the particle type
     for (const auto& particleParametrisation : multiParticleParameterisation) {
       if (particleParametrisation.first == particle.pdg()) {
-std::cout << "Run: " << particle << " | " << particle.fourPosition().transpose() << " | " << particle.fourMomentum().transpose() << std::endl;
         std::uniform_real_distribution<double> uniformDistribution{0., 1.};
 
         // Get the parameters

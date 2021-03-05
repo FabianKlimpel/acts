@@ -35,8 +35,7 @@ const detail::Parameters& NuclearInteraction::findParameters(
 
 unsigned int NuclearInteraction::sampleDiscreteValues(
     double rnd,
-    const detail::Parameters::CumulativeDistribution& distribution) const {
-for(unsigned int i = 0; i < distribution.first.size(); i++)			
+    const detail::Parameters::CumulativeDistribution& distribution) const {			
   // Fast exit
   if (distribution.second.empty()) {
     return 0;

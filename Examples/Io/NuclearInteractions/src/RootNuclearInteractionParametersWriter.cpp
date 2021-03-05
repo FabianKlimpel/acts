@@ -449,8 +449,8 @@ std::cout << "End Run called" << std::endl;
     ACTS_DEBUG("Parametrisation of final state kinematics for hard " +
                std::to_string(i) + " particle(s) final state finished");
   }
-   
-  //~ tf.cd();
+std::cout << "!Will cd()" << std::endl;   
+  tf->cd();
 std::cout << "!Will write" << std::endl;
   tf->Write();
 std::cout << "!Will close" << std::endl;

@@ -223,7 +223,7 @@ std::vector<std::pair<std::vector<float>, std::vector<uint32_t>>> buildMaps(
 /// @param [in] eventFractionCollection The event storage
 /// @param [in] interactionType The interaction type that will be parametrised
 /// @param [in] cfg Configuration that steers the binning of histograms
-void recordKinematicParametrisation(
+inline void recordKinematicParametrisation(
     const std::vector<
         ActsExamples::detail::NuclearInteractionParametrisation::EventFraction>&
         eventFractionCollection,
@@ -263,7 +263,6 @@ std::cout << "Done: " << distributionsMom.size() << " | " << distributionsInvMas
                                    momEigenVec.data() + momEigenVec.size());
       std::vector<float> momVecMean(momMean.data(),
                                     momMean.data() + momMean.size());
-
       gDirectory->WriteObject(&momVecVal, "MomentumEigenvalues");
       gDirectory->WriteObject(&momVecVec, "MomentumEigenvectors");
       gDirectory->WriteObject(&momVecMean, "MomentumMean");
@@ -283,7 +282,6 @@ std::cout << "Done: " << distributionsMom.size() << " | " << distributionsInvMas
           invMassEigenVec.data() + invMassEigenVec.size());
       std::vector<float> invMassVecMean(
           invMassMean.data(), invMassMean.data() + invMassMean.size());
-
       gDirectory->WriteObject(&invMassVecVal, "InvariantMassEigenvalues");
       gDirectory->WriteObject(&invMassVecVec, "InvariantMassEigenvectors");
       gDirectory->WriteObject(&invMassVecMean, "InvariantMassMean");
@@ -351,6 +349,7 @@ ActsExamples::RootNuclearInteractionParametersWriter::
 
 ActsExamples::ProcessCode
 ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
+std::cout << "End Run called" << std::endl;
   namespace Parametrisation = detail::NuclearInteractionParametrisation;
   if (m_eventFractionCollection.empty())
     return ProcessCode::ABORT;
@@ -373,7 +372,6 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
       std::to_string(m_eventFractionCollection[0].initialMomentum).c_str());
   gDirectory->mkdir("soft");
   gDirectory->mkdir("hard");
-  //~ tf.Flush();
   
   // Write the nuclear interaction probability
   ACTS_DEBUG("Starting parametrisation of nuclear interaction probability");
@@ -388,7 +386,6 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
       buildMap(nuclearInteractionProbability, m_cfg.nSimulatedEvents);
   gDirectory->WriteObject(&mapNIprob.first, "NuclearInteractionBinBorders");
   gDirectory->WriteObject(&mapNIprob.second, "NuclearInteractionBinContents");
-  //~ tf.Flush();
   ACTS_DEBUG("Nuclear interaction probability parametrised");
 
   ACTS_DEBUG("Starting calulcation of probability of interaction type");
@@ -397,7 +394,6 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
       Parametrisation::softProbability(m_eventFractionCollection);
 
   gDirectory->WriteObject(&softProbability, "SoftInteraction");
-  //~ tf.Flush();
   ACTS_DEBUG("Calulcation of probability of interaction type finished");
 
   // Write the PDG id production distribution
@@ -419,7 +415,6 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   gDirectory->WriteObject(&branchingPdgIds, "BranchingPdgIds");
   gDirectory->WriteObject(&targetPdgIds, "TargetPdgIds");
   gDirectory->WriteObject(&targetPdgProbability, "TargetPdgProbability");
-  //~ tf.Flush();
   ACTS_DEBUG(
       "Calulcation of transition probabilities betweend PDG IDs finished");
 
@@ -427,7 +422,6 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   ACTS_DEBUG("Starting parametrisation of multiplicity probabilities");
   const auto multiplicity = Parametrisation::cumulativeMultiplicityProbability(
       m_eventFractionCollection, m_cfg.multiplicityMax);
-  //~ tf.Flush();
   ACTS_DEBUG("Parametrisation of multiplicity probabilities finished");
 
   gDirectory->cd("soft");
@@ -436,12 +430,10 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   const auto multProbSoft = buildMap(multiplicity.first);
   gDirectory->WriteObject(&multProbSoft.first, "MultiplicityBinBorders");
   gDirectory->WriteObject(&multProbSoft.second, "MultiplicityBinContents");
-  //~ tf.Flush();
   for (unsigned int i = 1; i <= m_cfg.multiplicityMax; i++) {
     ACTS_DEBUG("Starting parametrisation of final state kinematics for soft " +
                std::to_string(i) + " particle(s) final state");
     recordKinematicParametrisation(m_eventFractionCollection, true, i, m_cfg);
-    //~ tf.Flush();
     ACTS_DEBUG("Parametrisation of final state kinematics for soft " +
                std::to_string(i) + " particle(s) final state finished");
   }
@@ -451,7 +443,6 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   const auto multProbHard = buildMap(multiplicity.second);
   gDirectory->WriteObject(&multProbHard.first, "MultiplicityBinBorders");
   gDirectory->WriteObject(&multProbHard.second, "MultiplicityBinContents");
-  //~ tf.Flush();
   
   for (unsigned int i = 1; i <= m_cfg.multiplicityMax; i++) {
     ACTS_DEBUG("Starting parametrisation of final state kinematics for hard " +
@@ -461,10 +452,13 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
     ACTS_DEBUG("Parametrisation of final state kinematics for hard " +
                std::to_string(i) + " particle(s) final state finished");
   }
+   
   //~ tf.cd();
+std::cout << "!Will write" << std::endl;
   tf->Write();
-  //~ tf->Close();
-
+std::cout << "!Will close" << std::endl;
+  tf->Close();
+std::cout << "!Will return" << std::endl;
   delete (nuclearInteractionProbability);
   delete (multiplicity.first);
   delete (multiplicity.second);
@@ -475,6 +469,7 @@ ActsExamples::ProcessCode
 ActsExamples::RootNuclearInteractionParametersWriter::writeT(
     const AlgorithmContext& /*ctx*/,
     const ExtractedSimulationProcessContainer& event) {
+std::cout << "writeT called" << std::endl;
   // Convert the tuple to use additional categorisation variables
   std::vector<detail::NuclearInteractionParametrisation::EventFraction>
       eventFractions;

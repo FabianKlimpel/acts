@@ -50,7 +50,6 @@ struct NuclearInteraction {
   template <typename generator_t>
   std::pair<Scalar, Scalar> generatePathLimits(generator_t& generator,
                                                const Particle& particle) const {
-std::cout << "Particle Limit: " << particle << std::endl;												   
     // Fast exit: No paramtrization provided
     if (multiParticleParameterisation.empty()) {
       return std::make_pair(std::numeric_limits<Scalar>::infinity(),
@@ -93,7 +92,6 @@ std::cout << "Particle Limit: " << particle << std::endl;
   template <typename generator_t>
   bool run(generator_t& generator, Particle& particle,
            std::vector<Particle>& generated) const {
-std::cout << "Particle Int: " << particle << std::endl;
     // Fast exit: No paramtrization provided
     if (multiParticleParameterisation.empty()) {
       return false;
@@ -102,6 +100,7 @@ std::cout << "Particle Int: " << particle << std::endl;
     // Find the parametrisation that corresponds to the particle type
     for (const auto& particleParametrisation : multiParticleParameterisation) {
       if (particleParametrisation.first == particle.pdg()) {
+std::cout << "Run: " << particle << " | " << particle.fourPosition().transpose() << " | " << particle.fourMomentum().transpose() << std::endl;
         std::uniform_real_distribution<double> uniformDistribution{0., 1.};
 
         // Get the parameters

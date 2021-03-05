@@ -101,6 +101,7 @@ struct SingleParticleSimulation {
     Acts::SingleCurvilinearTrackParameters<Acts::AnyCharge> start(
         particle.fourPosition(), particle.unitDirection(),
         particle.absoluteMomentum(), particle.charge());
+
     auto result = propagator.propagate(start, options);
     if (not result.ok()) {
       return result.error();

@@ -88,15 +88,19 @@ RiddersAtlasPropagatorType rapropagator(std::move(rastepper));
 
 DensePropagatorType setupDensePropagator() {
   CuboidVolumeBuilder::VolumeConfig vConf;
-  vConf.position = {1.5_m, 0., 0.};
-  vConf.length = {3_m, 1_m, 1_m};
+  //~ vConf.position = {1.5_m, 0., 0.};
+  //~ vConf.length = {3_m, 1_m, 1_m};
+  vConf.position = {0., 0., 0.};
+  vConf.length = {20_m, 20_m, 20_m};
 
   vConf.volumeMaterial = std::make_shared<const HomogeneousVolumeMaterial>(
       Material(352.8, 407., 9.012, 4., 1.848e-3));
   CuboidVolumeBuilder::Config conf;
   conf.volumeCfg.push_back(vConf);
-  conf.position = {1.5_m, 0., 0.};
-  conf.length = {3_m, 1_m, 1_m};
+  //~ conf.position = {1.5_m, 0., 0.};
+  //~ conf.length = {3_m, 1_m, 1_m};
+  conf.position = {0., 0., 0.};
+  conf.length = {50_m, 50_m, 50_m};
   CuboidVolumeBuilder cvb(conf);
   TrackingGeometryBuilder::Config tgbCfg;
   tgbCfg.trackingVolumeBuilders.push_back(

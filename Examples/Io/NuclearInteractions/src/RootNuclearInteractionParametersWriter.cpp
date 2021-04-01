@@ -198,6 +198,10 @@ std::pair<std::vector<float>, std::vector<uint32_t>> buildMap(TH1F const* hist,
   std::vector<float> histoBorders = std::get<0>(map);
   reduceMap(histoBorders, normalisedHistoContents);
 
+  // Border for the case that (within the given data set) no nuclear interaction may occur
+  histoBorders.push_back(std::numeric_limits<float>::max());
+  normalisedHistoContents.push_back(UINT32_MAX);
+
   return std::make_pair(histoBorders, normalisedHistoContents);
 }
 

@@ -351,11 +351,11 @@ std::vector<int> NuclearInteraction::samplePdgIds(
   std::uniform_real_distribution<float> uniformDistribution{0., 1.};
 
   // Find the producers probability distribution
-  auto citProducer = pdgMap.cbegin();
-  while (citProducer->first != particlePdg && citProducer != pdgMap.end())
-    citProducer++;
+  auto citProducerInitial = pdgMap.cbegin();
+  while (citProducerInitial->first != particlePdg && citProducerInitial != pdgMap.end())
+    citProducerInitial++;
 
-  const std::vector<std::pair<int, float>>& mapInitial = citProducer->second;
+  const std::vector<std::pair<int, float>>& mapInitial = citProducerInitial->second;
   // Set the first particle depending on the interaction type
   if (soft)
     // Store the initial particle if the interaction is soft
@@ -375,9 +375,12 @@ std::vector<int> NuclearInteraction::samplePdgIds(
   for (unsigned int i = 1; i < multiplicity; i++) {
     // Find the producers probability distribution from the last produced
     // particle
-    citProducer = pdgMap.cbegin();
+    auto citProducer = pdgMap.cbegin();
     while (citProducer->first != pdgIds[i - 1] && citProducer != pdgMap.end())
       citProducer++;
+
+	if(citProducer == pdgMap.end())
+		citProducer = citProducerInitial;
 
     // Set the next particle
     const std::vector<std::pair<int, float>>& map = citProducer->second;

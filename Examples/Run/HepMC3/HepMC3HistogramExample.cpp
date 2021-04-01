@@ -12,6 +12,44 @@
 #include "ActsExamples/Io/NuclearInteractions/RootNuclearInteractionParametersWriter.hpp"
 #include "ActsExamples/Options/CommonOptions.hpp"
 
+namespace {
+void
+addMyOptions(
+    ActsExamples::Options::Description& desc) {
+  using boost::program_options::value;
+
+  auto opt = desc.add_options();
+  opt("multiplicity-Min",
+      value<unsigned int>()->default_value({}),
+      "Minimum multiplicity.");
+  opt("multiplicity-Max",
+      value<unsigned int>()->default_value({}),
+      "Maximum multiplicity.");
+  opt("record-Soft",
+      value<bool>()->default_value({}),
+      "Record soft.");
+  opt("write-hist",
+      value<bool>()->default_value({}),
+      "Write histograms.");
+  opt("num-simulated-events",
+      value<unsigned int>()->default_value({}),
+      "Number of simulated events.");    
+}
+
+ActsExamples::RootNuclearInteractionParametersWriter::Config readMyConfig(
+    const boost::program_options::variables_map& variables) {
+  
+   ActsExamples::RootNuclearInteractionParametersWriter::Config cfg;
+   cfg.multiplicityMin = variables["multiplicity-Min"].as<unsigned int>();
+   cfg.multiplicityMax = variables["multiplicity-Max"].as<unsigned int>();
+   cfg.recordSoft = variables["record-Soft"].as<unsigned int>();
+   cfg.writeOptionalHistograms = variables["write-hist"].as<unsigned int>();
+   cfg.nSimulatedEvents = variables["num-simulated-events"].as<unsigned int>();
+
+	return cfg;
+}
+}
+
 ///
 /// Straight forward example of reading a HepMC3 file.
 ///
@@ -22,6 +60,7 @@ int main(int argc, char** argv) {
   ActsExamples::Options::addSequencerOptions(desc);
   ActsExamples::Options::addInputOptions(desc);
   ActsExamples::Options::addHepMC3ReaderOptions(desc);
+  addMyOptions(desc);
 
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
   if (vm.empty()) {
@@ -41,7 +80,7 @@ int main(int argc, char** argv) {
   extractionConfig.inputEvents = hepMC3ReaderConfig.outputEvents;
   extractionConfig.extractionProcess = "Inelastic";
 
-  ActsExamples::RootNuclearInteractionParametersWriter::Config writerCfg;
+  ActsExamples::RootNuclearInteractionParametersWriter::Config writerCfg = readMyConfig(vm);
   writerCfg.inputSimulationProcesses =
       extractionConfig.outputSimulationProcesses;
 

@@ -33,7 +33,10 @@ addMyOptions(
       "Write histograms.");
   opt("num-simulated-events",
       value<unsigned int>()->default_value({}),
-      "Number of simulated events.");    
+      "Number of simulated events."); 
+  opt("parametrisation-filename",
+	  value<std::string>()->default_value("parameters.root"),
+	  "Filename of the parametrisation");
 }
 
 ActsExamples::RootNuclearInteractionParametersWriter::Config readMyConfig(
@@ -42,9 +45,10 @@ ActsExamples::RootNuclearInteractionParametersWriter::Config readMyConfig(
    ActsExamples::RootNuclearInteractionParametersWriter::Config cfg;
    cfg.multiplicityMin = variables["multiplicity-Min"].as<unsigned int>();
    cfg.multiplicityMax = variables["multiplicity-Max"].as<unsigned int>();
-   cfg.recordSoft = variables["record-Soft"].as<unsigned int>();
-   cfg.writeOptionalHistograms = variables["write-hist"].as<unsigned int>();
+   cfg.recordSoft = variables["record-Soft"].as<bool>();
+   cfg.writeOptionalHistograms = variables["write-hist"].as<bool>();
    cfg.nSimulatedEvents = variables["num-simulated-events"].as<unsigned int>();
+   cfg.outputFilename = variables["parametrisation-filename"].as<std::string>();
 
 	return cfg;
 }

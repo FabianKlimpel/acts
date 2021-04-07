@@ -8,3 +8,14 @@ target_link_libraries(
 install(
   TARGETS ActsExampleFatrasDD4hep
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  
+add_executable(
+  ActsExampleFatrasDD4hep2
+  DD4hepFatrasExample2.cpp)
+target_link_libraries(
+  ActsExampleFatrasDD4hep2
+  PRIVATE ActsExamplesFatrasCommon ActsExamplesDetectorDD4hep ActsExamplesEventRecording)
+
+install(
+  TARGETS ActsExampleFatrasDD4hep2
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -71,7 +71,7 @@ ActsExamples::ProcessCode ActsExamples::HepMC3AsciiReader::read(
 
   ACTS_VERBOSE(events.size() << " events read");
   //~ ctx.eventStore.add(m_cfg.outputEvents, std::move(events));
-
+  
   reader.close();
   
   m_processExtractor.execute(ctx, events);  

@@ -89,7 +89,6 @@ std::vector<ActsExamples::SimParticle> selectOutgoingParticles(
   // Identify the ingoing particle in the outgoing particles
   HepMC3::ConstGenParticlePtr procPart =
       searchProcessParticleById(vertex, trackID);
-
   // Test whether this particle survives or dies
   HepMC3::ConstGenVertexPtr endVertex = procPart->end_vertex();
   if (endVertex
@@ -103,6 +102,7 @@ std::vector<ActsExamples::SimParticle> selectOutgoingParticles(
     // Store the leftovers if it dies
     for (const HepMC3::ConstGenParticlePtr& procPartOut :
          endVertex->particles_out())
+         {
       if (procPartOut->attribute<HepMC3::IntAttribute>("TrackID")->value() ==
               trackID &&
           procPartOut->end_vertex()) {
@@ -112,6 +112,7 @@ std::vector<ActsExamples::SimParticle> selectOutgoingParticles(
               ActsExamples::HepMC3Particle::particle(dyingPartOut));
         }
       }
+	}
   }
 
   // Record the particles produced in this process
@@ -125,6 +126,8 @@ std::vector<ActsExamples::SimParticle> selectOutgoingParticles(
       const int id = stoi(att.substr(att.find("-") + 1));
       HepMC3::ConstGenParticlePtr genParticle =
           searchProcessParticleById(endVertex, id);
+      if(genParticle == nullptr)
+		continue;
       ActsFatras::Barcode barcode = ActsFatras::Barcode().setParticle(id);
       auto pid = static_cast<Acts::PdgParticle>(genParticle->pid());
 

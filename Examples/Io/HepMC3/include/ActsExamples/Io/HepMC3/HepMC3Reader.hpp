@@ -10,6 +10,7 @@
 
 #include "Acts/Utilities/Logger.hpp"
 #include "ActsExamples/Framework/IReader.hpp"
+#include "ActsExamples/Io/HepMC3/HepMC3ProcessExtractor.hpp"
 
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/ReaderAscii.h>
@@ -26,6 +27,8 @@ class HepMC3AsciiReader final : public IReader {
     std::string inputStem;
     // The output collection
     std::string outputEvents;
+    
+    HepMC3ProcessExtractor::Config processExtractorCfg;
   };
 
   /// @brief Reads an event from file
@@ -62,6 +65,8 @@ class HepMC3AsciiReader final : public IReader {
   std::unique_ptr<const Acts::Logger> m_logger;
 
   const Acts::Logger& logger() const { return *m_logger; }
+  
+  HepMC3ProcessExtractor m_processExtractor;
 };
 
 }  // namespace ActsExamples

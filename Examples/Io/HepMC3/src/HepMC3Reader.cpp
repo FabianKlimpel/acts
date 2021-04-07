@@ -29,7 +29,8 @@ ActsExamples::HepMC3AsciiReader::HepMC3AsciiReader(
     : m_cfg(cfg),
       m_eventsRange(
           determineEventFilesRange(cfg.inputDir, cfg.inputStem + ".hepmc3")),
-      m_logger(Acts::getDefaultLogger("HepMC3AsciiReader", lvl)) {
+      m_logger(Acts::getDefaultLogger("HepMC3AsciiReader", lvl)),
+      m_processExtractor(HepMC3ProcessExtractor(cfg.processExtractorCfg, lvl)) {
   if (m_cfg.inputStem.empty()) {
     throw std::invalid_argument("Missing input filename stem");
   }
@@ -69,8 +70,10 @@ ActsExamples::ProcessCode ActsExamples::HepMC3AsciiReader::read(
     return ActsExamples::ProcessCode::ABORT;
 
   ACTS_VERBOSE(events.size() << " events read");
-  ctx.eventStore.add(m_cfg.outputEvents, std::move(events));
+  //~ ctx.eventStore.add(m_cfg.outputEvents, std::move(events));
 
   reader.close();
+  
+  m_processExtractor.execute(ctx, events);  
   return ActsExamples::ProcessCode::SUCCESS;
 }

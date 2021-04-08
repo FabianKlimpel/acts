@@ -24,6 +24,49 @@
 #include "RunAction.hpp"
 #include "SteppingAction.hpp"
 
+namespace {
+
+ActsExamples::SimParticleContainer
+finalStateParticles(const std::vector<HepMC3::GenEvent>& events) {
+	ActsExamples::SimParticleContainer finalStates;
+	
+	unsigned int counter = 1;
+	for(const auto& evt : events)
+	{
+		for(const auto& part : evt.particles())
+		{
+			if(part->end_vertex() == nullptr && part->production_vertex()->id() != 0)
+			{
+				HepMC3::FourVector mom = part->momentum();
+				Acts::Vector3 mom3{mom.x(), mom.y(), mom.z()};
+				mom3 *= Acts::UnitConstants::GeV;
+				if(mom3.norm() < 50. * Acts::UnitConstants::MeV)
+					continue;
+				
+				int pid = part->pid();
+				ActsFatras::Barcode barcode;
+				barcode.setGeneration(counter++);
+				ActsFatras::Particle particle(barcode, static_cast<Acts::PdgParticle>(pid));
+				
+				auto vtx = part->production_vertex();
+				HepMC3::FourVector pos = vtx->position();
+				particle.setPosition4(pos.x(), pos.y(), pos.z(), pos.t());
+				
+				particle.setDirection(mom3.normalized());
+				particle.setAbsoluteMomentum(mom3.norm());
+				
+				std::cout << "ID: " << part->id() << " | " << particle.particleId() << std::endl;		
+				std::cout << particle.pdg() << " " << mom3.norm() << " | " << vtx->id() << " " << vtx->particles_in().size() << " " << vtx->particles_out().size() << std::endl;
+				finalStates.insert(particle);
+			}
+		}
+	}
+	
+	return finalStates;
+}
+	
+}
+
 ActsExamples::EventRecording::~EventRecording() {
   m_runManager = nullptr;
 }
@@ -97,6 +140,13 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
     beamParticle->set_pid(part.pdg());
 
     if (m_cfg.processSelect.empty()) {
+		// Remove vertices without outgoing particles
+        for (auto it = event.vertices().crbegin();
+             it != event.vertices().crend(); it++) {
+          if ((*it)->particles_out().empty()) {
+            event.remove_vertex(*it);
+          }
+        }
       // Store the result
       events.push_back(std::move(event));
     } else {
@@ -142,8 +192,12 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
   ACTS_INFO(initialParticles.size() << " initial particles provided");
   ACTS_INFO(events.size() << " tracks generated");
 
+  SimParticleContainer finalState = finalStateParticles(events);
+  ACTS_INFO(finalState.size() << " final state particles found");
+  
   // Write the recorded material to the event store
-  context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));
+  //~ context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));
+  context.eventStore.add(m_cfg.outputHepMcTracks, std::move(finalState));
 
   return ActsExamples::ProcessCode::SUCCESS;
 }

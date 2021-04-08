@@ -62,8 +62,12 @@ ActsExamples::FatrasAlgorithm::Config ActsExamples::FatrasAlgorithm::readConfig(
     cfg.generateHitsOnSensitive = true;
     cfg.generateHitsOnMaterial = true;
     cfg.generateHitsOnPassive = true;
-  } else {
-    throw std::runtime_error("Invalid Fatras hits selection '" + hits + "'");
+  } else if(hits == "none") {
+		cfg.generateHitsOnSensitive = false;
+		cfg.generateHitsOnMaterial = false;
+		cfg.generateHitsOnPassive = false;
+	} else {
+		throw std::runtime_error("Invalid Fatras hits selection '" + hits + "'");
   }
 
   return cfg;

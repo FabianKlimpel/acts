@@ -14,7 +14,7 @@ add_executable(
   DD4hepFatrasExample2.cpp)
 target_link_libraries(
   ActsExampleFatrasDD4hep2
-  PRIVATE ActsExamplesFatrasCommon ActsExamplesDetectorDD4hep ActsExamplesEventRecording)
+  PRIVATE ActsExamplesFatrasCommon ActsExamplesDetectorDD4hep ActsExamplesEventRecording ActsExamplesGeant4 ActsExamplesGeant4DD4hep)
 
 install(
   TARGETS ActsExampleFatrasDD4hep2

@@ -18,6 +18,9 @@
 #include "ActsExamples/Fatras/FatrasAlgorithm.hpp"
 #include "ActsExamples/Geometry/CommonGeometry.hpp"
 #include "ActsExamples/Geant4HepMC/EventRecording.hpp"
+#include "ActsExamples/Geant4/Geant4Options.hpp"
+#include "ActsExamples/DD4hepDetector/DD4hepDetectorOptions.hpp"
+#include "ActsExamples/Geant4DD4hep/DD4hepDetectorConstruction.hpp"
 
 #include "Fatras.hpp"
 #include <boost/program_options.hpp>
@@ -37,7 +40,7 @@ static constexpr const char* kSimHits = "simhits";
 void addInputOptions(ActsExamples::Options::Description& desc) {
   ActsExamples::Options::addParticleGunOptions(desc);
   /// TODO(add options for pythia)
-  ActsExamples::ParticleSelector::addOptions(desc);
+  //~ ActsExamples::ParticleSelector::addOptions(desc);
 }
 
 void setupInput(
@@ -54,7 +57,8 @@ void setupInput(
     sequencer.addReader(std::make_shared<EventGenerator>(gen, logLevel));
 
   // add additional particle selection
-  auto select = ActsExamples::ParticleSelector::readConfig(vars);
+  //~ auto select = ActsExamples::ParticleSelector::readConfig(vars);
+  ActsExamples::ParticleSelector::Config select;
   select.inputParticles = kParticlesInput;
   select.outputParticles = kParticlesSelection;
   sequencer.addAlgorithm(
@@ -96,6 +100,7 @@ void setupSimulation(
   fatrasCfg.inputParticles = kParticlesSelection;
   fatrasCfg.outputParticlesInitial = kParticlesInitial;
   fatrasCfg.outputParticlesFinal = kParticlesFinal;
+  fatrasCfg.outputSimHits = kSimHits;
   fatrasCfg.randomNumbers = randomNumbers;
   fatrasCfg.trackingGeometry = trackingGeometry;
   fatrasCfg.magneticField = ActsExamples::Options::readMagneticField(vars);
@@ -121,6 +126,7 @@ int main(int argc, char* argv[]) {
   Options::addMagneticFieldOptions(desc);
   // algorithm-specific options
   FatrasAlgorithm::addOptions(desc);
+  Options::addGeant4Options(desc);
 
   auto vars = Options::parse(desc, argc, argv);
   if (vars.empty()) {
@@ -144,7 +150,32 @@ int main(int argc, char* argv[]) {
   setupOutput(vars, sequencer);
   
   /// TODO: setup G4 + G4 writer
+  // Prepare the detector
+  auto dd4hepCfg = ActsExamples::Options::readDD4hepConfig(vars);
+  auto geometrySvc =
+      std::make_shared<ActsExamples::DD4hep::DD4hepGeometryService>(dd4hepCfg);
+  std::unique_ptr<G4VUserDetectorConstruction> g4detector =
+      std::make_unique<ActsExamples::DD4hepDetectorConstruction>(
+          *geometrySvc->lcdd());
+  
+  EventRecording::Config erConfig;
+  erConfig.inputParticles = kParticlesSelection;
+  erConfig.outputHepMcTracks = "geant-outcome-tracks";
+  erConfig.detectorConstruction = std::move(g4detector);
+  erConfig.seed1 = vars["g4-rnd-seed1"].as<unsigned int>();
+  erConfig.seed2 = vars["g4-rnd-seed2"].as<unsigned int>();    
 
+    // write simulated particle final states
+    RootParticleWriter::Config writeFinal;
+    writeFinal.inputParticles = erConfig.outputHepMcTracks;
+    writeFinal.filePath = joinPaths(ensureWritableDirectory(vars["output-dir"].template as<std::string>()), "particles_final_geant4.root");
+    
+  auto logLevel = Options::readLogLevel(vars);
+  sequencer.addAlgorithm(
+      std::make_shared<EventRecording>(std::move(erConfig), logLevel));
+  sequencer.addWriter(
+        std::make_shared<RootParticleWriter>(writeFinal, logLevel));
+        
   // run the simulation
   return sequencer.run();
 }

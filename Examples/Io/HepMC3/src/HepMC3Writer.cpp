@@ -29,30 +29,69 @@ ActsExamples::ProcessCode ActsExamples::HepMC3AsciiWriter::writeT(
   HepMC3::WriterAscii writer(path);
 
 std::cout << "Number of events: " << events.size() << std::endl;
-for(unsigned int i = 78; i < events.size(); i++)
-{
+
+	unsigned int ci = 0, cj = 0;
+  //~ for (const auto& event : events) {
+  for(unsigned int i = 78; i < events.size(); i++) {
+	 
+	 const auto attributes = events[i].attributes();
+	 for(const auto& attribute : attributes)
+	 {
+		 std::cout << "First Attribute: " << attribute.first << std::endl;
+		 for(const auto& att : attribute.second)
+		 {
+			 std::cout << "First att: " << att.first << " | " << attributes.size() << " " << attribute.second.size() << " | " << ci << " " << cj << std::endl;
+			 std::cout << "shared ptr: " << att.second << std::endl;
+			 if(att.second != nullptr)
+			 {
+				std::string str;
+				att.second->to_string(str);
+				std::cout << "to String: " << str << std::endl; 
+			 }
+			 cj++;
+		 }
+		 ci++;
+		 cj = 0;
+	 }
+	 
+	 std::cout << "Loop through map finished" << std::endl;
+	 /* 
 	std::cout << "Summary: " << i << " | " << events[i].particles().size() << " " <<  events[i].vertices().size() << std::endl;
 	for(const auto& part : events[i].particles())
 	{
-		std::cout << "part id: " << part->id() << " | " << part->attribute_names().size() << std::endl;
-		for(unsigned int j = 0; j < part->attribute_names().size(); j++)
+		if(part == nullptr)
 		{
-			std::cout << "Part Attr: " << j << " | " << part->attribute_names()[j] << " " << part->attribute_as_string(part->attribute_names()[j]) << std::endl;
+			std::cout << "PART IS NULLPTR!!!!!" << std::endl;
+			continue;
 		}
+		//~ std::cout << "part id: " << part->id() << " | " << part->attribute_names().size() << std::endl;
+		//~ for(unsigned int j = 0; j < part->attribute_names().size(); j++)
+		//~ {
+			//~ std::cout << j << " | " << part->attribute_names()[j] << " " << part->attribute_as_string(part->attribute_names()[j]) << " || ";
+		//~ }
+		//~ std::cout << std::endl; 
 	}
 	for(const auto& vtx : events[i].vertices())
 	{
-		std::cout << "vtx id: " << vtx->id() << " | " << vtx->attribute_names().size() << std::endl;
-		for(unsigned int j = 0; j < vtx->attribute_names().size(); j++)
+		if(vtx == nullptr)
 		{
-			std::cout << "Vtx Attr: " << j << " | " << vtx->attribute_names()[j] << " " << vtx->attribute_as_string(vtx->attribute_names()[j]) << std::endl;
+			std::cout << "VTX IS NULLPTR!!!!!" << std::endl;
+			continue;
 		}
+		//~ std::cout << "vtx id: " << vtx->id() << " | " << vtx->attribute_names().size() << std::endl;
+		//~ for(unsigned int j = 0; j < vtx->attribute_names().size(); j++)
+		//~ {
+			//~ std::cout << j << " | " << vtx->attribute_names()[j] << " " << vtx->attribute_as_string(vtx->attribute_names()[j]) << " || ";
+		//~ }
+		//~ std::cout << std::endl;
 	}
-}
-  for (const auto& event : events) {
-    writer.write_event(event);
+	*/
+	
+    writer.write_event(events[i]);
     if (writer.failed())
       return ActsExamples::ProcessCode::ABORT;
+      
+    std::cout << i << " finished" << std::endl;
   }
 
   writer.close();

@@ -55,8 +55,6 @@ finalStateParticles(const std::vector<HepMC3::GenEvent>& events) {
 				particle.setDirection(mom3.normalized());
 				particle.setAbsoluteMomentum(mom3.norm());
 				
-				std::cout << "ID: " << part->id() << " | " << particle.particleId() << std::endl;		
-				std::cout << particle.pdg() << " " << mom3.norm() << " | " << vtx->id() << " " << vtx->particles_in().size() << " " << vtx->particles_out().size() << std::endl;
 				finalStates.insert(particle);
 			}
 		}
@@ -196,8 +194,8 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
   ACTS_INFO(finalState.size() << " final state particles found");
   
   // Write the recorded material to the event store
-  //~ context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));
-  context.eventStore.add(m_cfg.outputHepMcTracks, std::move(finalState));
+  context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));
+  //~ context.eventStore.add(m_cfg.outputHepMcTracks, std::move(finalState));
 
   return ActsExamples::ProcessCode::SUCCESS;
 }

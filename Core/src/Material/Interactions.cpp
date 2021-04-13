@@ -496,3 +496,27 @@ float Acts::computeMultipleScatteringTheta0(const MaterialProperties& slab,
     return theta0Highland(xOverX0, momentumInv, q2OverBeta2);
   }
 }
+
+float Acts::computeMultipleScatteringTheta0(float x0,
+                                            int pdg, float m, float qOverP,
+                                            float q) {
+  ASSERT_INPUTS(m, qOverP, q)
+
+  // return early in case of vacuum or zero thickness
+  if (x0 == 0.) {
+    return 0.0f;
+  }
+
+  // relative radiation length
+  const auto xOverX0 = x0;
+  // 1/p = q/(pq) = (q/p)/q
+  const auto momentumInv = std::abs(qOverP / q);
+  // q²/beta²; a smart compiler should be able to remove the unused computations
+  const auto q2OverBeta2 = RelativisticQuantities(m, qOverP, q).q2OverBeta2;
+
+  if ((pdg == PdgParticle::eElectron) or (pdg == PdgParticle::ePositron)) {
+    return theta0RossiGreisen(xOverX0, momentumInv, q2OverBeta2);
+  } else {
+    return theta0Highland(xOverX0, momentumInv, q2OverBeta2);
+  }
+}

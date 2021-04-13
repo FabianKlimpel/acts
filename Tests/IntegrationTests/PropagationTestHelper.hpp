@@ -14,6 +14,7 @@
 #include "Acts/Propagator/DebugOutputActor.hpp"
 #include "Acts/Tests/CommonHelpers/FloatComparisons.hpp"
 #include "Acts/Utilities/Helpers.hpp"
+#include "Acts/Propagator/DenseMaterialInteractor.hpp"
 
 #include <limits>
 
@@ -323,7 +324,7 @@ auto covariance_curvilinear(const Propagator_type& propagator,
   using namespace Acts::UnitLiterals;
 
   // setup propagation options
-  DenseStepperPropagatorOptions<> options(tgContext, mfContext);
+  DenseStepperPropagatorOptions<Acts::ActionList<Acts::DenseMaterialInteractor>> options(tgContext, mfContext);
   options.maxStepSize = 0.1 * plimit;
   options.maxSteps = 1e5;
   options.pathLimit = plimit;

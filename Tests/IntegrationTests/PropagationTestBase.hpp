@@ -335,7 +335,7 @@ BOOST_AUTO_TEST_CASE(covariance_transport_to_curvilinear) {
 	tf.Write();
 	tf.Close();
 }
-*/
+
 
 BOOST_AUTO_TEST_CASE(covariance_transport_to_curvilinear) {
   
@@ -437,7 +437,7 @@ BOOST_AUTO_TEST_CASE(covariance_transport_to_curvilinear) {
 	tf.Write();
 	tf.Close();
 }
-
+*/
 BOOST_AUTO_TEST_CASE(dense_covariance_transport) {
 
 	TFile tf("IntegrationtestsCovDense.root", "RECREATE");

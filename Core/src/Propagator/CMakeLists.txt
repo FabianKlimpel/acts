@@ -4,4 +4,5 @@ target_sources_local(
     detail/CovarianceEngine.cpp
     detail/PointwiseMaterialInteraction.cpp
     StraightLineStepper.cpp
+    DenseMaterialInteractor.cpp
 )

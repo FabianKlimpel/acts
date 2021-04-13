@@ -136,5 +136,9 @@ float deriveEnergyLossModeQOverP(const MaterialProperties& slab, int pdg,
 float computeMultipleScatteringTheta0(const MaterialProperties& slab, int pdg,
                                       float m, float qOverP,
                                       float q = UnitConstants::e);
+                                      
+float computeMultipleScatteringTheta0(float x0, int pdg,
+                                      float m, float qOverP,
+                                      float q = UnitConstants::e);
 
 }  // namespace Acts

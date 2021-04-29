@@ -14,6 +14,7 @@
 #include "ActsExamples/TruthTracking/ParticleSelector.hpp"
 #include "ActsExamples/Utilities/Paths.hpp"
 #include "ActsExamples/Io/Root/RootParticleWriter.hpp"
+#include "ActsExamples/Io/Root/RootSimHitWriter.hpp"
 #include "ActsExamples/MagneticField/MagneticFieldOptions.hpp"
 #include "ActsExamples/Fatras/FatrasAlgorithm.hpp"
 #include "ActsExamples/Geometry/CommonGeometry.hpp"
@@ -86,6 +87,13 @@ void setupOutput(const ActsExamples::Options::Variables& vars,
     writeFinal.filePath = joinPaths(outputDir, "particles_final.root");
     sequencer.addWriter(
         std::make_shared<RootParticleWriter>(writeFinal, logLevel));
+        
+    // write simulated hits
+    RootSimHitWriter::Config writeHits;
+    writeHits.inputSimHits = kSimHits;
+    writeHits.filePath = joinPaths(outputDir, "hits.root");
+    sequencer.addWriter(
+        std::make_shared<RootSimHitWriter>(writeHits, logLevel));
 }
 
 // simulation handling
@@ -146,7 +154,6 @@ int main(int argc, char* argv[]) {
   }
   // setup algorithm chain
   setupInput(vars, sequencer, randomNumbers);
-  setupSimulation(vars, sequencer, randomNumbers, trackingGeometry);
   setupOutput(vars, sequencer);
   
   /// TODO: setup G4 + G4 writer
@@ -163,7 +170,9 @@ int main(int argc, char* argv[]) {
   erConfig.outputHepMcTracks = "geant-outcome-tracks";
   erConfig.detectorConstruction = std::move(g4detector);
   erConfig.seed1 = vars["g4-rnd-seed1"].as<unsigned int>();
-  erConfig.seed2 = vars["g4-rnd-seed2"].as<unsigned int>();    
+  erConfig.seed2 = vars["g4-rnd-seed2"].as<unsigned int>();
+  erConfig.processesReject = {"pi+Inelastic", "pi-Inelastic"}; 
+  //~ erConfig.processSelect = "Decay"; 
 
     // write simulated particle final states
     RootParticleWriter::Config writeFinal;
@@ -176,6 +185,8 @@ int main(int argc, char* argv[]) {
   sequencer.addWriter(
         std::make_shared<RootParticleWriter>(writeFinal, logLevel));
         
+  setupSimulation(vars, sequencer, randomNumbers, trackingGeometry);
+    
   // run the simulation
   return sequencer.run();
 }

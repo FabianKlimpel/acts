@@ -238,6 +238,8 @@ if(ACTS_CUSTOM_SCALARTYPE)
     message(STATUS "Building Acts with custom scalar type: ${ACTS_CUSTOM_SCALARTYPE}")
 endif()
 
+find_package(GeoModelCore PATHS /afs/cern.ch/work/f/fklimpel/install/ REQUIRED)
+
 # core library, core plugins, and other components
 add_component(Core Core)
 add_subdirectory(Plugins)

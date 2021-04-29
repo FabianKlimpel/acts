@@ -77,7 +77,7 @@ class RootParticleWriter final : public WriterT<SimParticleContainer> {
   /// Production position components in mm.
   float m_vx, m_vy, m_vz;
   // Production time in ns.
-  float m_vt;
+  float m_vt, m_vProperT;
   /// Momentum components in GeV.
   float m_px, m_py, m_pz;
   /// Mass in GeV.

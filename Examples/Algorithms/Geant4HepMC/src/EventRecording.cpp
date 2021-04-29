@@ -17,6 +17,7 @@
 
 #include <FTFP_BERT.hh>
 #include <HepMC3/GenParticle.h>
+#include <HepMC3/WriterAscii.h>
 
 #include "EventAction.hpp"
 #include "G4RunManager.hh"
@@ -24,18 +25,22 @@
 #include "RunAction.hpp"
 #include "SteppingAction.hpp"
 
+#include "ActsExamples/Utilities/Paths.hpp"
+
 namespace {
 
 ActsExamples::SimParticleContainer
 finalStateParticles(const std::vector<HepMC3::GenEvent>& events) {
 	ActsExamples::SimParticleContainer finalStates;
-	
-	unsigned int counter = 1;
+	unsigned int eventCounter = 0;
 	for(const auto& evt : events)
 	{
+		unsigned int counter = 0;
+		int currentTrackID = 0;
 		for(const auto& part : evt.particles())
 		{
-			if(part->end_vertex() == nullptr && part->production_vertex()->id() != 0)
+			//~ if(part->end_vertex() == nullptr && part->production_vertex()->id() != 0)
+			if(part->attribute<HepMC3::IntAttribute>("TrackID") != nullptr)
 			{
 				HepMC3::FourVector mom = part->momentum();
 				Acts::Vector3 mom3{mom.x(), mom.y(), mom.z()};
@@ -44,8 +49,15 @@ finalStateParticles(const std::vector<HepMC3::GenEvent>& events) {
 					continue;
 				
 				int pid = part->pid();
+				if(currentTrackID != part->attribute<HepMC3::IntAttribute>("TrackID")->value())
+				{
+					currentTrackID = part->attribute<HepMC3::IntAttribute>("TrackID")->value();
+					counter = 0;
+				}
 				ActsFatras::Barcode barcode;
-				barcode.setGeneration(counter++);
+				barcode.setVertexPrimary(eventCounter);
+				barcode.setVertexSecondary(currentTrackID);
+				barcode.setSubParticle(counter++);
 				ActsFatras::Particle particle(barcode, static_cast<Acts::PdgParticle>(pid));
 				
 				auto vtx = part->production_vertex();
@@ -54,10 +66,14 @@ finalStateParticles(const std::vector<HepMC3::GenEvent>& events) {
 				
 				particle.setDirection(mom3.normalized());
 				particle.setAbsoluteMomentum(mom3.norm());
-				
+
+				if(part->attribute<HepMC3::DoubleAttribute>("ProperTime") != nullptr)
+					particle.setProperTime(part->attribute<HepMC3::DoubleAttribute>("ProperTime")->value() * Acts::UnitConstants::s);
+
 				finalStates.insert(particle);
 			}
 		}
+		eventCounter++;
 	}
 	
 	return finalStates;
@@ -102,6 +118,11 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
   // ensure exclusive access to the geant run manager
   std::lock_guard<std::mutex> guard(m_runManagerLock);
 
+  auto path = perEventFilepath("", "2.hepmc3",
+                               context.eventNumber);
+  ACTS_DEBUG("Attempting to write event to " << path);
+  HepMC3::WriterAscii writer(path);
+                              
   // Retrieve the initial particles
   const auto initialParticles =
       context.eventStore.get<ActsExamples::SimParticleContainer>(
@@ -147,6 +168,11 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
         }
       // Store the result
       events.push_back(std::move(event));
+std::cout << "Writing Event " << events.size() << std::endl;
+      writer.write_event(events.back());
+std::cout << "Writing Done " << std::endl;      
+      if (writer.failed())
+		  return ActsExamples::ProcessCode::ABORT;
     } else {
       bool storeEvent = false;
       // Test if the event has a process of interest in it
@@ -183,6 +209,11 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
           }
         }
         events.push_back(std::move(event));
+std::cout << "Writing Event " << events.size() << std::endl;
+      writer.write_event(events.back());
+std::cout << "Writing Done " << std::endl;      
+      if (writer.failed())
+		  return ActsExamples::ProcessCode::ABORT;
       }
     }
   }
@@ -192,6 +223,10 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
 
   SimParticleContainer finalState = finalStateParticles(events);
   ACTS_INFO(finalState.size() << " final state particles found");
+  
+std::cout << "Closing the writer" << std::endl;
+writer.close();
+std::cout << "Writer closed" << std::endl;
   
   // Write the recorded material to the event store
   context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));

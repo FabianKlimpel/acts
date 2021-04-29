@@ -59,7 +59,7 @@ void ActsExamples::PrimaryGeneratorAction::prepareParticleGun(
   constexpr double convertEnergy = CLHEP::GeV / Acts::UnitConstants::GeV;
 
   // Particle type
-  G4ParticleDefinition* particle = m_particleTable->FindParticle(part.pdg());
+  G4ParticleDefinition* particle = m_particleTable->FindParticle((std::abs(part.pdg()) == 22 ? 22 : part.pdg()));
   m_particleGun->SetParticleDefinition(particle);
   // Particle properties
   const auto pos = part.position() * convertLength;

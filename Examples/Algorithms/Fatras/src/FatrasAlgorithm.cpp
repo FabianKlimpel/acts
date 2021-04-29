@@ -28,6 +28,7 @@
 #include "ActsFatras/Selectors/KinematicCasts.hpp"
 #include "ActsFatras/Selectors/SelectorHelpers.hpp"
 #include "ActsFatras/Selectors/SurfaceSelectors.hpp"
+#include "ActsFatras/Geant4/Geant4Decay.hpp"
 
 namespace {
 
@@ -82,7 +83,7 @@ struct FatrasAlgorithmSimulationT final
   using ChargedSelector = CutPMin;
   using ChargedSimulation = ActsFatras::SingleParticleSimulation<
       ChargedPropagator, ActsFatras::StandardChargedElectroMagneticInteractions,
-      HitSurfaceSelector, ActsFatras::NoDecay>;
+      HitSurfaceSelector, ActsFatras::Geant4Decay>;
 
   // typedefs for neutral particle simulation
   // propagate neutral particles with just straight lines
@@ -94,7 +95,7 @@ struct FatrasAlgorithmSimulationT final
       ActsFatras::InteractionList<ActsFatras::PhotonConversion>;
   using NeutralSimulation = ActsFatras::SingleParticleSimulation<
       NeutralPropagator, NeutralInteractions, ActsFatras::NoSurface,
-      ActsFatras::NoDecay>;
+      ActsFatras::Geant4Decay>;
 
   // combined simulation type
   using Simulation = ActsFatras::Simulation<ChargedSelector, ChargedSimulation,

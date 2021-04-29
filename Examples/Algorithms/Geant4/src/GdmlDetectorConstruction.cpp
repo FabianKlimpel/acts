@@ -9,6 +9,9 @@
 #include "ActsExamples/Geant4/GdmlDetectorConstruction.hpp"
 
 #include <G4GDMLParser.hh>
+#include <G4UniformMagField.hh>
+#include <G4FieldManager.hh>
+//~ #include <SystemOfUnits.hh>
 
 using namespace ActsExamples;
 
@@ -19,5 +22,12 @@ G4VPhysicalVolume* GdmlDetectorConstruction::Construct() {
   G4GDMLParser parser;
   // TODO how to handle errors
   parser.Read(m_path,false);
-  return parser.GetWorldVolume();
+  G4VPhysicalVolume* world = parser.GetWorldVolume();
+  G4LogicalVolume* logicalWorld = world->GetLogicalVolume();
+  
+  G4MagneticField* magneticField = new G4UniformMagField(G4ThreeVector(0.,0.,2.*CLHEP::tesla));
+  G4FieldManager* fieldManager = new G4FieldManager(magneticField);
+  logicalWorld->SetFieldManager(fieldManager, true); 
+
+  return world;
 }

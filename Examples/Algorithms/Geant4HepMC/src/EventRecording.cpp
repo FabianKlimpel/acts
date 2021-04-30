@@ -10,7 +10,6 @@
 
 #include "ActsExamples/EventData/SimParticle.hpp"
 #include "ActsExamples/Framework/WhiteBoard.hpp"
-#include "ActsExamples/Geant4/GdmlDetectorConstruction.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -68,8 +67,9 @@ finalStateParticles(const std::vector<HepMC3::GenEvent>& events) {
 				particle.setAbsoluteMomentum(mom3.norm());
 
 				if(part->attribute<HepMC3::DoubleAttribute>("ProperTime") != nullptr)
+				{
 					particle.setProperTime(part->attribute<HepMC3::DoubleAttribute>("ProperTime")->value() * Acts::UnitConstants::s);
-
+				}
 				finalStates.insert(particle);
 			}
 		}
@@ -117,11 +117,6 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
     const ActsExamples::AlgorithmContext& context) const {
   // ensure exclusive access to the geant run manager
   std::lock_guard<std::mutex> guard(m_runManagerLock);
-
-  auto path = perEventFilepath("", "2.hepmc3",
-                               context.eventNumber);
-  ACTS_DEBUG("Attempting to write event to " << path);
-  HepMC3::WriterAscii writer(path);
                               
   // Retrieve the initial particles
   const auto initialParticles =
@@ -132,7 +127,9 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
   std::vector<HepMC3::GenEvent> events;
   events.reserve(initialParticles.size());
 
+  unsigned int counter = 1;
   for (const auto& part : initialParticles) {
+std::cout << "Starting Event " << counter++ << std::endl;
     // Prepare the particle gun
     ActsExamples::PrimaryGeneratorAction::instance()->prepareParticleGun(part);
 
@@ -168,11 +165,17 @@ ActsExamples::ProcessCode ActsExamples::EventRecording::execute(
         }
       // Store the result
       events.push_back(std::move(event));
+auto path = perEventFilepath("", std::to_string(counter) + ".hepmc3",
+						   context.eventNumber);
+HepMC3::WriterAscii writer(path);
 std::cout << "Writing Event " << events.size() << std::endl;
       writer.write_event(events.back());
 std::cout << "Writing Done " << std::endl;      
       if (writer.failed())
 		  return ActsExamples::ProcessCode::ABORT;
+std::cout << "Closing the writer" << std::endl;
+writer.close();
+std::cout << "Writer closed" << std::endl;		  
     } else {
       bool storeEvent = false;
       // Test if the event has a process of interest in it
@@ -208,12 +211,39 @@ std::cout << "Writing Done " << std::endl;
             event.remove_vertex(*it);
           }
         }
+//~ if(counter == 223)
+//~ {
+for(const auto& v : event.vertices())
+{	
+	auto atts = v->attribute_names();
+	for(const auto& att : atts)
+	{
+		if(att.find("InitialParametersOf-4088") != std::string::npos)
+		{
+std::cout << "Catching values " << v->attribute<HepMC3::VectorDoubleAttribute>("InitialParametersOf-4088") << std::endl;
+	const auto value = v->attribute<HepMC3::VectorDoubleAttribute>("InitialParametersOf-4088")->value();
+std::cout << "Values: " << value[0] << " " << value[1] << " " << value[2] << " " << value[3] << std::endl;
+std::cout << "As string" << std::endl;
+			const auto valueString = v->attribute_as_string("InitialParametersOf-4088");
+std::cout << "ValueString: " << valueString << std::endl;
+		}
+	}
+}
+//~ }       
         events.push_back(std::move(event));
+std::cout << "PRINT FROM THERE" << std::endl;
+        
+auto path = perEventFilepath("", std::to_string(counter) + ".hepmc3",
+						   context.eventNumber);
+HepMC3::WriterAscii writer(path);        
 std::cout << "Writing Event " << events.size() << std::endl;
       writer.write_event(events.back());
 std::cout << "Writing Done " << std::endl;      
       if (writer.failed())
 		  return ActsExamples::ProcessCode::ABORT;
+std::cout << "Closing the writer" << std::endl;
+writer.close();
+std::cout << "Writer closed" << std::endl;		  
       }
     }
   }
@@ -223,14 +253,11 @@ std::cout << "Writing Done " << std::endl;
 
   SimParticleContainer finalState = finalStateParticles(events);
   ACTS_INFO(finalState.size() << " final state particles found");
-  
-std::cout << "Closing the writer" << std::endl;
-writer.close();
-std::cout << "Writer closed" << std::endl;
+ 
   
   // Write the recorded material to the event store
-  context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));
-  //~ context.eventStore.add(m_cfg.outputHepMcTracks, std::move(finalState));
+  //~ context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));
+  context.eventStore.add(m_cfg.outputHepMcTracks, std::move(finalState));
 
   return ActsExamples::ProcessCode::SUCCESS;
 }

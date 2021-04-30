@@ -6,7 +6,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "ActsExamples/DD4hepDetector/DD4hepDetector.hpp"
 #include "ActsExamples/Framework/RandomNumbers.hpp"
 #include "ActsExamples/Framework/Sequencer.hpp"
 #include "ActsExamples/Options/CommonOptions.hpp"
@@ -20,8 +19,9 @@
 #include "ActsExamples/Geometry/CommonGeometry.hpp"
 #include "ActsExamples/Geant4HepMC/EventRecording.hpp"
 #include "ActsExamples/Geant4/Geant4Options.hpp"
-#include "ActsExamples/DD4hepDetector/DD4hepDetectorOptions.hpp"
-#include "ActsExamples/Geant4DD4hep/DD4hepDetectorConstruction.hpp"
+
+#include "ActsExamples/Geant4GeoModel/GdmlDetectorConstruction.hpp"
+#include "ActsExamples/TGeoDetector/TGeoDetector.hpp"
 
 #include "Fatras.hpp"
 #include <boost/program_options.hpp>
@@ -119,8 +119,7 @@ void setupSimulation(
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  std::shared_ptr<ActsExamples::IBaseDetector> detector = std::make_shared<DD4hepDetector>();
-
+	auto detector = std::make_shared<TGeoDetector>();
   // setup and parse options
   auto desc = Options::makeDefaultOptions();
   Options::addSequencerOptions(desc);
@@ -135,7 +134,12 @@ int main(int argc, char* argv[]) {
   // algorithm-specific options
   FatrasAlgorithm::addOptions(desc);
   Options::addGeant4Options(desc);
-
+  desc.add_options()(
+      "gdml-to-gm-plugin",
+      boost::program_options::value<std::string>()->default_value(""),
+      "Path to libGDMLtoGM.so. Note: The gdml file has to be named "
+      "gdmlfile.xml.");
+      
   auto vars = Options::parse(desc, argc, argv);
   if (vars.empty()) {
     return EXIT_FAILURE;
@@ -156,14 +160,10 @@ int main(int argc, char* argv[]) {
   setupInput(vars, sequencer, randomNumbers);
   setupOutput(vars, sequencer);
   
-  /// TODO: setup G4 + G4 writer
+  /// TODO: G4 BField
   // Prepare the detector
-  auto dd4hepCfg = ActsExamples::Options::readDD4hepConfig(vars);
-  auto geometrySvc =
-      std::make_shared<ActsExamples::DD4hep::DD4hepGeometryService>(dd4hepCfg);
-  std::unique_ptr<G4VUserDetectorConstruction> g4detector =
-      std::make_unique<ActsExamples::DD4hepDetectorConstruction>(
-          *geometrySvc->lcdd());
+  auto gdmlFile = vars["gdml-to-gm-plugin"].as<std::string>();
+  auto g4detector = std::make_unique<GdmlDetectorConstruction>(gdmlFile);
   
   EventRecording::Config erConfig;
   erConfig.inputParticles = kParticlesSelection;

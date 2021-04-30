@@ -11,7 +11,6 @@
 #include <G4GDMLParser.hh>
 #include <G4UniformMagField.hh>
 #include <G4FieldManager.hh>
-//~ #include <SystemOfUnits.hh>
 
 using namespace ActsExamples;
 

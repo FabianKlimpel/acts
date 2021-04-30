@@ -165,17 +165,17 @@ std::cout << "Starting Event " << counter++ << std::endl;
         }
       // Store the result
       events.push_back(std::move(event));
-auto path = perEventFilepath("", std::to_string(counter) + ".hepmc3",
-						   context.eventNumber);
-HepMC3::WriterAscii writer(path);
-std::cout << "Writing Event " << events.size() << std::endl;
-      writer.write_event(events.back());
-std::cout << "Writing Done " << std::endl;      
-      if (writer.failed())
-		  return ActsExamples::ProcessCode::ABORT;
-std::cout << "Closing the writer" << std::endl;
-writer.close();
-std::cout << "Writer closed" << std::endl;		  
+//~ auto path = perEventFilepath("", std::to_string(counter) + ".hepmc3",
+						   //~ context.eventNumber);
+//~ HepMC3::WriterAscii writer(path);
+//~ std::cout << "Writing Event " << events.size() << std::endl;
+      //~ writer.write_event(events.back());
+//~ std::cout << "Writing Done " << std::endl;      
+      //~ if (writer.failed())
+		  //~ return ActsExamples::ProcessCode::ABORT;
+//~ std::cout << "Closing the writer" << std::endl;
+//~ writer.close();
+//~ std::cout << "Writer closed" << std::endl;		  
     } else {
       bool storeEvent = false;
       // Test if the event has a process of interest in it
@@ -213,37 +213,37 @@ std::cout << "Writer closed" << std::endl;
         }
 //~ if(counter == 223)
 //~ {
-for(const auto& v : event.vertices())
-{	
-	auto atts = v->attribute_names();
-	for(const auto& att : atts)
-	{
-		if(att.find("InitialParametersOf-4088") != std::string::npos)
-		{
-std::cout << "Catching values " << v->attribute<HepMC3::VectorDoubleAttribute>("InitialParametersOf-4088") << std::endl;
-	const auto value = v->attribute<HepMC3::VectorDoubleAttribute>("InitialParametersOf-4088")->value();
-std::cout << "Values: " << value[0] << " " << value[1] << " " << value[2] << " " << value[3] << std::endl;
-std::cout << "As string" << std::endl;
-			const auto valueString = v->attribute_as_string("InitialParametersOf-4088");
-std::cout << "ValueString: " << valueString << std::endl;
-		}
-	}
-}
+//~ for(const auto& v : event.vertices())
+//~ {	
+	//~ auto atts = v->attribute_names();
+	//~ for(const auto& att : atts)
+	//~ {
+		//~ if(att.find("InitialParametersOf-4088") != std::string::npos)
+		//~ {
+//~ std::cout << "Catching values " << v->attribute<HepMC3::VectorDoubleAttribute>("InitialParametersOf-4088") << std::endl;
+	//~ const auto value = v->attribute<HepMC3::VectorDoubleAttribute>("InitialParametersOf-4088")->value();
+//~ std::cout << "Values: " << value[0] << " " << value[1] << " " << value[2] << " " << value[3] << std::endl;
+//~ std::cout << "As string" << std::endl;
+			//~ const auto valueString = v->attribute_as_string("InitialParametersOf-4088");
+//~ std::cout << "ValueString: " << valueString << std::endl;
+		//~ }
+	//~ }
+//~ }
 //~ }       
         events.push_back(std::move(event));
-std::cout << "PRINT FROM THERE" << std::endl;
+//~ std::cout << "PRINT FROM THERE" << std::endl;
         
-auto path = perEventFilepath("", std::to_string(counter) + ".hepmc3",
-						   context.eventNumber);
-HepMC3::WriterAscii writer(path);        
-std::cout << "Writing Event " << events.size() << std::endl;
-      writer.write_event(events.back());
-std::cout << "Writing Done " << std::endl;      
-      if (writer.failed())
-		  return ActsExamples::ProcessCode::ABORT;
-std::cout << "Closing the writer" << std::endl;
-writer.close();
-std::cout << "Writer closed" << std::endl;		  
+//~ auto path = perEventFilepath("", std::to_string(counter) + ".hepmc3",
+						   //~ context.eventNumber);
+//~ HepMC3::WriterAscii writer(path);        
+//~ std::cout << "Writing Event " << events.size() << std::endl;
+      //~ writer.write_event(events.back());
+//~ std::cout << "Writing Done " << std::endl;      
+      //~ if (writer.failed())
+		  //~ return ActsExamples::ProcessCode::ABORT;
+//~ std::cout << "Closing the writer" << std::endl;
+//~ writer.close();
+//~ std::cout << "Writer closed" << std::endl;		  
       }
     }
   }

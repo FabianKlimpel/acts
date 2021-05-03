@@ -46,10 +46,10 @@ G4VPhysicalVolume* GdmlDetectorConstruction::Construct() {
   G4VPhysicalVolume* fWorld = physWorld;
   fWorld->GetLogicalVolume()->SetVisAttributes(G4VisAttributes::Invisible);
 
-  //~ G4LogicalVolume* logicalWorld = fWorld->GetLogicalVolume();
-  //~ G4MagneticField* magneticField = new G4UniformMagField(G4ThreeVector(0.,0.,2.*CLHEP::tesla));
-  //~ G4FieldManager* fieldManager = new G4FieldManager(magneticField);
-  //~ logicalWorld->SetFieldManager(fieldManager, true); 
+  G4LogicalVolume* logicalWorld = fWorld->GetLogicalVolume();
+  G4MagneticField* magneticField = new G4UniformMagField(G4ThreeVector(0.,0.,2.*CLHEP::tesla));
+  G4FieldManager* fieldManager = new G4FieldManager(magneticField);
+  logicalWorld->SetFieldManager(fieldManager, true); 
   
   return fWorld;
 }

@@ -256,8 +256,8 @@ std::cout << "Starting Event " << counter++ << std::endl;
  
   
   // Write the recorded material to the event store
-  //~ context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));
-  context.eventStore.add(m_cfg.outputHepMcTracks, std::move(finalState));
+  context.eventStore.add(m_cfg.outputHepMcTracks, std::move(events));
+  //~ context.eventStore.add(m_cfg.outputHepMcTracks, std::move(finalState));
 
   return ActsExamples::ProcessCode::SUCCESS;
 }

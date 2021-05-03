@@ -153,6 +153,7 @@ int main(int argc, char* argv[]) {
   Sequencer sequencer(Options::readSequencerConfig(vars));
   // setup detector geometry and material and the magnetic field
   auto [trackingGeometry, contextDecorators] = Geometry::build(vars, *detector);
+std::cout << "TRACKING GEOMETRY: " << trackingGeometry << std::endl;       
   for (auto cdr : contextDecorators) {
     sequencer.addContextDecorator(cdr);
   }
@@ -172,7 +173,7 @@ int main(int argc, char* argv[]) {
   erConfig.seed1 = vars["g4-rnd-seed1"].as<unsigned int>();
   erConfig.seed2 = vars["g4-rnd-seed2"].as<unsigned int>();
   //~ erConfig.processesReject = {"pi+Inelastic", "pi-Inelastic"}; 
-  erConfig.processesReject = {"kaon0SInelastic"}; 
+  //~ erConfig.processesReject = {"kaon0SInelastic"}; 
   //~ erConfig.processSelect = "Decay"; 
 
     // write simulated particle final states
@@ -185,7 +186,6 @@ int main(int argc, char* argv[]) {
       std::make_shared<EventRecording>(std::move(erConfig), logLevel));
   sequencer.addWriter(
         std::make_shared<RootParticleWriter>(writeFinal, logLevel));
-        
   setupSimulation(vars, sequencer, randomNumbers, trackingGeometry);
     
   // run the simulation

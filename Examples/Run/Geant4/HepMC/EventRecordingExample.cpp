@@ -26,6 +26,14 @@
 
 #include <boost/program_options.hpp>
 
+void addSelectionOption(ActsExamples::Options::Description& desc) {
+  using boost::program_options::value;
+
+  auto opt = desc.add_options();
+  opt("process-select", value<std::string>(),
+      "Process that will be selected");
+}
+
 int main(int argc, char* argv[]) {
   // Declare the supported program options.
   // Setup and parse options
@@ -36,6 +44,7 @@ int main(int argc, char* argv[]) {
   ActsExamples::Options::addDD4hepOptions(desc);
   ActsExamples::Options::addGeant4Options(desc);
   ActsExamples::Options::addHepMC3WriterOptions(desc);
+  addSelectionOption(desc);
 
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
   if (vm.empty()) {
@@ -69,6 +78,7 @@ int main(int argc, char* argv[]) {
   erConfig.detectorConstruction = std::move(g4detector);
   erConfig.seed1 = vm["g4-rnd-seed1"].as<unsigned int>();
   erConfig.seed2 = vm["g4-rnd-seed2"].as<unsigned int>();
+  erConfig.processSelect = vm["process-select"].as<std::string>();
 
   // Create the writer
   auto hepMC3WriterConfig = ActsExamples::Options::readHepMC3WriterOptions(vm);

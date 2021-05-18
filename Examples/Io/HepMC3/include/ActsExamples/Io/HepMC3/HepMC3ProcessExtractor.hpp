@@ -54,6 +54,7 @@ class HepMC3ProcessExtractor final : public ActsExamples::BareAlgorithm {
       const AlgorithmContext& context) const final override;
 
   ActsExamples::ProcessCode execute(const AlgorithmContext& context, const std::vector<HepMC3::GenEvent>& events) const;
+  ActsExamples::ExtractedSimulationProcess execute(const AlgorithmContext& context, const HepMC3::GenEvent& event) const;
  private:
   /// The config object
   Config m_cfg;

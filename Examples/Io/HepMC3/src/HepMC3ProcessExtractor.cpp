@@ -157,7 +157,7 @@ void filterAndSort(
     for (auto cit = interaction.after.cbegin();
          cit != interaction.after.cend();) {
       // Test whether a particle fulfills the conditions
-      if (cit->pdg() < cfg.absPdgMin || cit->pdg() > cfg.absPdgMax ||
+      if (std::abs(cit->pdg()) < cfg.absPdgMin || std::abs(cit->pdg()) > cfg.absPdgMax ||
           cit->absoluteMomentum() < cfg.pMin) {
         interaction.after.erase(cit);
       } else {
@@ -173,6 +173,27 @@ void filterAndSort(
                 return a.absoluteMomentum() > b.absoluteMomentum();
               });
   }
+}
+
+void filterAndSort(
+    const ActsExamples::HepMC3ProcessExtractor::Config& cfg,
+    ActsExamples::ExtractedSimulationProcess& interaction) {
+    for (auto cit = interaction.after.cbegin();
+         cit != interaction.after.cend();) {
+      // Test whether a particle fulfills the conditions
+      if (std::abs(cit->pdg()) < cfg.absPdgMin || std::abs(cit->pdg()) > cfg.absPdgMax ||
+          cit->absoluteMomentum() < cfg.pMin) {
+        interaction.after.erase(cit);
+      } else {
+        cit++;
+      }
+    }
+
+  // Sort the particles based on their momentum
+    std::sort(interaction.after.begin(), interaction.after.end(),
+              [](ActsExamples::SimParticle& a, ActsExamples::SimParticle& b) {
+                return a.absoluteMomentum() > b.absoluteMomentum();
+              });
 }
 }  // namespace
 
@@ -307,3 +328,58 @@ ActsExamples::HepMC3ProcessExtractor::execute(const AlgorithmContext& context, c
 
   return ActsExamples::ProcessCode::SUCCESS;
 }
+
+ActsExamples::ExtractedSimulationProcess 
+ActsExamples::HepMC3ProcessExtractor::execute(const AlgorithmContext& context, const HepMC3::GenEvent& event) const {
+
+  ActsExamples::ExtractedSimulationProcess fraction;
+    // Fast exit
+    if (event.particles().empty() || event.vertices().empty()) {
+      std::cout << "Event has no particicles or vertices" << std::endl;
+      return fraction;
+    }
+
+    // Get the initial particle
+    HepMC3::ConstGenParticlePtr initialParticle = event.particles()[0];
+    ActsExamples::SimParticle simParticle =
+        HepMC3Particle::particle(initialParticle);
+
+    // Get the final state particles
+    ActsExamples::SimParticle particleToInteraction;
+    std::vector<ActsExamples::SimParticle> finalStateParticles;  
+    // Search the process vertex
+    bool vertexFound = false;
+    for (const auto& vertex : event.vertices()) {
+      const std::vector<std::string> attributes = vertex->attribute_names();
+      for (const auto& attribute : attributes) {
+        if (vertex->attribute_as_string(attribute).find(
+                m_cfg.extractionProcess) != std::string::npos) {
+          const int procID = stoi(attribute.substr(attribute.find("-") + 1));
+          // Get the particle before the interaction
+          particleToInteraction =
+              HepMC3Particle::particle(vertex->particles_in()[0]);
+          // Attach passed material to the particle
+          setPassedMaterial(vertex, procID, particleToInteraction);
+          // Record the final state particles
+          finalStateParticles = selectOutgoingParticles(vertex, procID);
+          vertexFound = true;
+          break;
+        }
+      }
+      if (vertexFound) {
+        break;
+      }
+    }
+    fraction = ActsExamples::ExtractedSimulationProcess{
+        simParticle, particleToInteraction, finalStateParticles};
+
+  filterAndSort(m_cfg, fraction);
+
+  return fraction;
+
+  // Filter and sort the record
+
+  // Write the recorded material to the event store
+  //context.eventStore.add(m_cfg.outputSimulationProcesses, std::move(fractions));
+}
+

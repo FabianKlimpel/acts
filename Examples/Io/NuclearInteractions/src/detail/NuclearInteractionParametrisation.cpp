@@ -241,10 +241,10 @@ Parametrisation buildInvariantMassParameters(const EventCollection& events,
 std::unordered_map<int, std::unordered_map<int, float>>
 cumulativePDGprobability(const EventCollection& events) {
   std::unordered_map<int, std::unordered_map<int, float>> counter;
-
+std::cout << "Start Filling" << std::endl;
   // Count how many and which particles were created by which particle
   for (const EventFraction& event : events) {
-    if (!event.soft) {
+    if (!event.soft && event.multiplicity > 0) {
       counter[event.initialParticle.pdg()][event.finalParticles[0].pdg()]++;
     }
     for (unsigned int i = 1; i < event.multiplicity; i++) {
@@ -252,7 +252,7 @@ cumulativePDGprobability(const EventCollection& events) {
              [event.finalParticles[i].pdg()]++;
     }
   }
-
+std::cout << "Filling done" << std::endl;
   // Build a cumulative distribution
   for (const auto& element : counter) {
     float sum = 0;

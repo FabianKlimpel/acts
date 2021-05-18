@@ -32,6 +32,7 @@ void labelEvents(
     double maxMomOthers = 0.;
     // Walk over all final state particles
     for (const ActsExamples::SimParticle& p : event.finalParticles) {
+std::cout << "P PDG: " << p.pdg() << std::endl;
       // Search for the maximum in particles with the same PDG ID as the
       // interacting one
       if (p.pdg() == event.initialParticle.pdg())
@@ -47,24 +48,36 @@ void labelEvents(
     // Label the indication that the interacting particle carries most of the
     // momentum
     event.soft = (maxMom > maxMomOthers);
-
+std::cout << maxMom << " " << maxMomOthers << " " << event.initialParticle.pdg() << std::endl;
+if(event.soft)
+std::cout << "Pretag SOFT" << std::endl;
     // Get the final state p_T
     double pt = 0.;
     Acts::Vector2 ptVec(0., 0.);
+    bool found = false;
     for (const ActsExamples::SimParticle& p : event.finalParticles) {
+      if(p.pdg() == event.initialParticle.pdg() && found == false && p.absoluteMomentum() == maxMom)
+	{
+		std::cout << "Particle found" << std::endl;
+		found = true;
+		continue;
+	}
       Acts::Vector2 particlePt =
           p.fourMomentum().template segment<2>(Acts::eMom0);
       ptVec[0] += particlePt[0];
       ptVec[1] += particlePt[1];
     }
     pt = ptVec.norm();
-
+if(event.soft)
+std::cout << event.interactingParticle.transverseMomentum() << " " << pt << std::endl;
     // Use the final state p_T as veto for the soft label
     if (event.soft && pt <= event.interactingParticle.transverseMomentum())
       event.soft = false;
 
     // Store the multiplicity
     event.multiplicity = event.finalParticles.size();
+if(event.soft)
+std::cout << "SOFT: " << event.multiplicity << std::endl;
   }
 }
 
@@ -250,7 +263,8 @@ inline void recordKinematicParametrisation(
           cfg.invariantMassBins);
   std::vector<Parametrisation::CumulativeDistribution> distributionsInvMass =
       invariantMassParameters.second;
-
+if(interactionType)
+std::cout << "Kinematic: " << distributionsMom.size() << " " << distributionsInvMass.size() << std::endl;
   // Fast exit in case of no events
   if (!distributionsMom.empty() && !distributionsInvMass.empty()) {
     if (multiplicity > 1) {
@@ -371,7 +385,7 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
   gDirectory->mkdir("soft");
   gDirectory->mkdir("hard");
 
-  if(m_cfg.multiplicityMax == 1)
+  if(m_cfg.multiplicityMax == 1 && m_cfg.recordSoft)
   {
 	  // Write the nuclear interaction probability
 	  ACTS_DEBUG("Starting parametrisation of nuclear interaction probability");
@@ -417,7 +431,9 @@ ActsExamples::RootNuclearInteractionParametersWriter::endRun() {
 	  gDirectory->WriteObject(&targetPdgProbability, "TargetPdgProbability");
 	  ACTS_DEBUG(
 		  "Calulcation of transition probabilities betweend PDG IDs finished");
-
+}
+if(m_cfg.multiplicityMax == 1 )
+{
 	  // Write the multiplicity and kinematics distribution
 	  ACTS_DEBUG("Starting parametrisation of multiplicity probabilities");
 	  const auto multiplicity = Parametrisation::cumulativeMultiplicityProbability(

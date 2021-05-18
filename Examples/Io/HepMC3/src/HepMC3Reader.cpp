@@ -12,6 +12,7 @@
 #include "ActsExamples/Utilities/Paths.hpp"
 
 #include <HepMC3/Units.h>
+#include <HepMC3/ReaderRootTree.h>
 
 bool ActsExamples::HepMC3AsciiReader::readEvent(HepMC3::ReaderAscii& reader,
                                                 HepMC3::GenEvent& event) {
@@ -57,23 +58,28 @@ ActsExamples::ProcessCode ActsExamples::HepMC3AsciiReader::read(
                                ctx.eventNumber);
 
   ACTS_DEBUG("Attempting to read event from " << path);
-  HepMC3::ReaderAscii reader(path);
+  //HepMC3::ReaderAscii reader(path);
+  HepMC3::ReaderRootTree reader(path);
+
+  ActsExamples::ExtractedSimulationProcessContainer interactions;
 
   reader.read_event(event);
   while (!reader.failed()) {
-    events.push_back(std::move(event));
+    interactions.push_back(m_processExtractor.execute(ctx, event));
+    //events.push_back(std::move(event));
     event.clear();
     reader.read_event(event);
   }
 
-  if (events.empty())
-    return ActsExamples::ProcessCode::ABORT;
+  //if (events.empty())
+  //  return ActsExamples::ProcessCode::ABORT;
 
-  ACTS_VERBOSE(events.size() << " events read");
-  //~ ctx.eventStore.add(m_cfg.outputEvents, std::move(events));
-  
+  ACTS_VERBOSE(interactions.size() << " events read");
+  //ctx.eventStore.add(m_cfg.outputEvents, std::move(interactions));
+  ctx.eventStore.add("event-fraction", std::move(interactions));  
+
   reader.close();
   
-  m_processExtractor.execute(ctx, events);  
+  //m_processExtractor.execute(ctx, events);  
   return ActsExamples::ProcessCode::SUCCESS;
 }

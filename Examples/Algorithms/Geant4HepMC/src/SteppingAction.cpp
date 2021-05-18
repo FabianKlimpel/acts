@@ -148,12 +148,15 @@ void ActsExamples::SteppingAction::UserSteppingAction(const G4Step* step) {
   const double L0 =
       track->GetMaterial()->GetNuclearInterLength() * convertLength;
   const double stepLength = track->GetStepLength();
+  const double properTime = track->GetProperTime();
   postParticle->add_attribute("NextX0",
                               std::make_shared<HepMC3::DoubleAttribute>(X0));
   postParticle->add_attribute("NextL0",
                               std::make_shared<HepMC3::DoubleAttribute>(L0));
   postParticle->add_attribute(
       "StepLength", std::make_shared<HepMC3::DoubleAttribute>(stepLength));
+  postParticle->add_attribute(
+      "ProperTime", std::make_shared<HepMC3::DoubleAttribute>(properTime * convertTime));
   postParticle->set_status(1);
 
   // Stop tracking the vertex if the particle dies

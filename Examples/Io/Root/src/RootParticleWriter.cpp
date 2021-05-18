@@ -49,6 +49,7 @@ ActsExamples::RootParticleWriter::RootParticleWriter(
   m_outputTree->Branch("vy", &m_vy);
   m_outputTree->Branch("vz", &m_vz);
   m_outputTree->Branch("vt", &m_vt);
+  m_outputTree->Branch("vProperT", &m_vProperT);
   m_outputTree->Branch("px", &m_px);
   m_outputTree->Branch("py", &m_py);
   m_outputTree->Branch("pz", &m_pz);
@@ -100,6 +101,7 @@ ActsExamples::ProcessCode ActsExamples::RootParticleWriter::writeT(
     m_vy = particle.fourPosition().y() / Acts::UnitConstants::mm;
     m_vz = particle.fourPosition().z() / Acts::UnitConstants::mm;
     m_vt = particle.fourPosition().w() / Acts::UnitConstants::ns;
+    m_vProperT = particle.properTime() / Acts::UnitConstants::ns;
     // momentum
     const auto p = particle.absoluteMomentum() / Acts::UnitConstants::GeV;
     m_px = p * particle.unitDirection().x();

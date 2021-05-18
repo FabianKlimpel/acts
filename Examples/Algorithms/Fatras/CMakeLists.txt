@@ -9,7 +9,7 @@ target_link_libraries(
   ActsExamplesFatras
   PUBLIC
     ActsCore ActsFatras
-    ActsExamplesFramework ActsExamplesMagneticField
+    ActsExamplesFramework ActsExamplesMagneticField ActsFatrasGeant4
   PRIVATE
     Boost::program_options)
 

@@ -82,7 +82,7 @@ Particle::Scalar Geant4Decay::generateProperTimeLimit(
   }
 
   // Get average lifetime
-  constexpr Scalar convertTime = Acts::UnitConstants::mm / CLHEP::s;
+  constexpr Scalar convertTime = Acts::UnitConstants::s / CLHEP::s;
   const Scalar tau = pDef->GetPDGLifeTime() * convertTime;
   // Sample & return the lifetime
   std::uniform_real_distribution<Scalar> uniformDistribution{0., 1.};

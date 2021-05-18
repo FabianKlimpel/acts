@@ -14,6 +14,7 @@
 #include "Acts/Propagator/Propagator.hpp"
 #include "Acts/Propagator/StraightLineStepper.hpp"
 #include "Acts/Surfaces/Surface.hpp"
+#include "Acts/Utilities/Logger.hpp"
 #include "ActsExamples/EventData/SimHit.hpp"
 #include "ActsExamples/EventData/SimParticle.hpp"
 #include "ActsExamples/Framework/BareAlgorithm.hpp"
@@ -27,6 +28,7 @@
 #include "ActsFatras/Selectors/KinematicCasts.hpp"
 #include "ActsFatras/Selectors/SelectorHelpers.hpp"
 #include "ActsFatras/Selectors/SurfaceSelectors.hpp"
+#include "ActsFatras/Geant4/Geant4Decay.hpp"
 
 namespace {
 
@@ -81,7 +83,7 @@ struct FatrasAlgorithmSimulationT final
   using ChargedSelector = CutPMin;
   using ChargedSimulation = ActsFatras::SingleParticleSimulation<
       ChargedPropagator, ActsFatras::StandardChargedElectroMagneticInteractions,
-      HitSurfaceSelector, ActsFatras::NoDecay>;
+      HitSurfaceSelector, ActsFatras::Geant4Decay>;
 
   // typedefs for neutral particle simulation
   // propagate neutral particles with just straight lines
@@ -93,7 +95,7 @@ struct FatrasAlgorithmSimulationT final
       ActsFatras::InteractionList<ActsFatras::PhotonConversion>;
   using NeutralSimulation = ActsFatras::SingleParticleSimulation<
       NeutralPropagator, NeutralInteractions, ActsFatras::NoSurface,
-      ActsFatras::NoDecay>;
+      ActsFatras::Geant4Decay>;
 
   // combined simulation type
   using Simulation = ActsFatras::Simulation<ChargedSelector, ChargedSimulation,
@@ -103,13 +105,14 @@ struct FatrasAlgorithmSimulationT final
 
   FatrasAlgorithmSimulationT(const ActsExamples::FatrasAlgorithm::Config &cfg,
                              Acts::Logging::Level lvl)
-      : simulation(ChargedSimulation(
-                       ChargedPropagator(ChargedStepper(cfg.magneticField),
-                                         cfg.trackingGeometry),
-                       lvl),
-                   NeutralSimulation(NeutralPropagator(NeutralStepper(),
-                                                       cfg.trackingGeometry),
-                                     lvl)) {
+      : simulation(
+            ChargedSimulation(
+                ChargedPropagator(ChargedStepper(cfg.magneticField),
+                                  cfg.trackingGeometry),
+                Acts::getDefaultLogger("Simulation", lvl)),
+            NeutralSimulation(
+                NeutralPropagator(NeutralStepper(), cfg.trackingGeometry),
+                Acts::getDefaultLogger("Simulation", lvl))) {
     using namespace ActsFatras;
     using namespace ActsFatras::detail;
     // apply the configuration

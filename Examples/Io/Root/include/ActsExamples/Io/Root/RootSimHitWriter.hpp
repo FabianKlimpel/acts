@@ -70,8 +70,6 @@ class RootSimHitWriter final : public WriterT<SimHitContainer> {
   uint32_t m_eventId;
   /// Hit surface identifier.
   uint64_t m_geometryId;
-  /// Event-unique particle identifier a.k.a. barcode.
-  uint64_t m_particleId;
   /// True global hit position components in mm.
   float m_tx, m_ty, m_tz;
   // True global hit time in ns.
@@ -82,6 +80,12 @@ class RootSimHitWriter final : public WriterT<SimHitContainer> {
   float m_deltapx, m_deltapy, m_deltapz, m_deltae;
   /// Hit index along the particle trajectory
   int32_t m_index;
+  // Decoded particle identifier components.
+  uint32_t m_vertexPrimary;
+  uint32_t m_vertexSecondary;
+  uint32_t m_particle;
+  uint32_t m_generation;
+  uint32_t m_subParticle;
   // Decoded hit surface identifier components.
   uint32_t m_volumeId;
   uint32_t m_boundaryId;

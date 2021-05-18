@@ -1,7 +1,6 @@
 add_library(
   ActsExamplesGeant4 SHARED
   src/EventAction.cpp
-  src/GdmlDetectorConstruction.cpp
   src/GeantinoRecording.cpp
   src/Geant4Options.cpp
   src/PrimaryGeneratorAction.cpp

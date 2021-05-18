@@ -41,7 +41,11 @@ ActsExamples::RootSimHitWriter::RootSimHitWriter(
   // setup the branches
   m_outputTree->Branch("event_id", &m_eventId);
   m_outputTree->Branch("geometry_id", &m_geometryId, "geometry_id/l");
-  m_outputTree->Branch("particle_id", &m_particleId, "particle_id/l");
+  m_outputTree->Branch("vertex_primary", &m_vertexPrimary);
+  m_outputTree->Branch("vertex_secondary", &m_vertexSecondary);
+  m_outputTree->Branch("particle", &m_particle);
+  m_outputTree->Branch("generation", &m_generation);
+  m_outputTree->Branch("sub_particle", &m_subParticle);
   m_outputTree->Branch("tx", &m_tx);
   m_outputTree->Branch("ty", &m_ty);
   m_outputTree->Branch("tz", &m_tz);
@@ -90,8 +94,13 @@ ActsExamples::ProcessCode ActsExamples::RootSimHitWriter::writeT(
 
   // Get the event number
   m_eventId = ctx.eventNumber;
-  for (const auto& hit : hits) {
-    m_particleId = hit.particleId().value();
+  for (const auto& hit : hits) {  
+    // decoded barcode components
+    m_vertexPrimary = hit.particleId().vertexPrimary();
+    m_vertexSecondary = hit.particleId().vertexSecondary();
+    m_particle = hit.particleId().particle();
+    m_generation = hit.particleId().generation();
+    m_subParticle = hit.particleId().subParticle();
     m_geometryId = hit.geometryId().value();
     // write hit position
     m_tx = hit.fourPosition().x() / Acts::UnitConstants::mm;
